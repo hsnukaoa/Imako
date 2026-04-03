@@ -8,11 +8,27 @@
 import SwiftUI
 
 struct ContactView: View {
+    @ObservedObject var vm: AuthViewModel
+    
     var body: some View {
-        Text("This is ContactView")
+        VStack{
+            Text("This is ContactView")
+            
+            Button{
+                vm.signOut()
+            }label: {
+                Text("ログアウト")
+                    .font(.callout.bold())
+            }
+            .padding()
+            .background(Color.red)
+            .foregroundStyle(.white)
+            .clipShape(.capsule)
+        }
     }
 }
 
 #Preview {
-    ContactView()
+    let previewVM = AuthViewModel()
+    ContactView(vm: previewVM)
 }

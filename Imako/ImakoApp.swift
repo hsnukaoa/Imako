@@ -18,11 +18,16 @@ class AppDelegate: NSObject, UIApplicationDelegate{
 @main
 struct ImakoApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject var vm = AuthViewModel()
     
     var body: some Scene {
         WindowGroup {
             NavigationView{
-                ContentView()
+                if vm.isLoggedIn {
+                    ContentView(vm: vm)
+                } else {
+                    LoginView(vm: vm)
+                }
             }
         }
     }
