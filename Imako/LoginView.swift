@@ -11,7 +11,6 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     
-    
     @ObservedObject var vm: AuthViewModel
     
     var body: some View {
@@ -68,23 +67,12 @@ struct LoginView: View {
                         .background(Color.black)
                         .cornerRadius(25)
                 }
-                /*
-                 Button {
-                 vm.signUp(email: email, password: password)
-                 }label: {
-                 Text("新規登録")
-                 .foregroundStyle(.black)
-                 .padding()
-                 .background(Color.gray.opacity(0.3))
-                 .cornerRadius(25)
-                 }
-                 */
                 
                 HStack{
                     Text("または")
                         .font(.callout.bold())
                     
-                    NavigationLink(destination: SignUpView()){
+                    NavigationLink(destination: SignUpView(vm: vm)){
                         Text("新規登録")
                             .font(.callout.bold())
                             .foregroundStyle(.red)
