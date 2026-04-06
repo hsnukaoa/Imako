@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ItemView: View {
+    @State private var showSheet = false
+    
     var body: some View {
         VStack{
             HStack {
@@ -19,7 +21,7 @@ struct ItemView: View {
                 
                 
                 Button{
-                    /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Action@*/ /*@END_MENU_TOKEN@*/
+                    showSheet = true
                 }label: {
                     Image(systemName: "plus")
                         .foregroundStyle(.black)
@@ -39,6 +41,9 @@ struct ItemView: View {
                 .font(.title)
             
             Spacer()
+        }
+        .sheet(isPresented: $showSheet){
+            AddItemView()
         }
     }
 }
