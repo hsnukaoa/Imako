@@ -10,6 +10,7 @@ import SwiftUI
 struct AddItemView: View {
     @Environment(\.dismiss) var dismiss
     @State private var ItemName: String = ""
+    @State private var canCall: Bool = false
     
     var body: some View {
         
@@ -71,6 +72,55 @@ struct AddItemView: View {
                     Spacer()
                 }
                 
+                HStack{
+                    ZStack(alignment: .bottomTrailing) {
+                        
+                        Button{
+                            
+                        } label: {
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .font(.system(size: 60))
+                                .foregroundStyle(.black.opacity(0.65))
+                                .padding()
+                        }
+                        .frame(width: 180, height: 180)
+                        .background(Color.gray.opacity(0.25))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        
+                        Button{
+                            
+                        } label: {
+                            Image(systemName: "photo.badge.plus")
+                                .font(.system(size: 25))
+                                .foregroundStyle(.black)
+                                .padding(13)
+                                .glassEffect()
+                                .clipShape(Circle())
+                        }
+                        .offset(x: 8, y: 8)
+                    }
+                    
+                    Spacer()
+                    
+                }
+            }
+            .padding()
+            
+            VStack{
+                HStack{
+                    Spacer()
+                    
+                    Text("電話をかける")
+                        .font(.headline)
+                    
+                    Toggle(isOn: $canCall) {}
+                    Spacer()
+                }
+                .padding()
+                
+                Text(canCall ? "重要な落とし物をしたときに、発見者があなたに電話をかけることができるようになります" : "")
+                    .padding()
+                    .font(.callout)
             }
             .padding()
             
