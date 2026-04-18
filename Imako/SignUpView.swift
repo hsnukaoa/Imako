@@ -84,6 +84,7 @@ struct SignUpView: View {
                         .background(Color.red)
                         .cornerRadius(25)
                 }
+                .buttonStyle(.plain)
                 
                 Spacer()
             }

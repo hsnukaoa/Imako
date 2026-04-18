@@ -67,6 +67,7 @@ struct LoginView: View {
                         .background(Color.black)
                         .cornerRadius(25)
                 }
+                .buttonStyle(.plain)
                 
                 HStack{
                     Text("または")
@@ -77,6 +78,7 @@ struct LoginView: View {
                             .font(.callout.bold())
                             .foregroundStyle(.red)
                     }
+                    .buttonStyle(.plain)
                 }
                 .padding()
                 

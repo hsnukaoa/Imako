@@ -26,9 +26,10 @@ struct ItemView: View {
                     Image(systemName: "plus")
                         .foregroundStyle(.black)
                         .font(.title)
+                        .padding()
                 }
-                .padding()
-                .glassEffect()
+                .buttonStyle(.plain)
+                .glassEffect(.regular.interactive(), in: .circle)
             }
             .padding()
             

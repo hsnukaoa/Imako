@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A68750EF2F938B51003A7B09 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = A68750EE2F938B51003A7B09 /* DesignSystem */; };
 		A68C23AA2F7CF6B800592C85 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A68C23A92F7CF6B800592C85 /* FirebaseAnalytics */; };
 		A68C23AC2F7CF6B800592C85 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A68C23AB2F7CF6B800592C85 /* FirebaseAuth */; };
 		A68C23AE2F7CF6B800592C85 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A68C23AD2F7CF6B800592C85 /* FirebaseFirestore */; };
@@ -30,6 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A68750EF2F938B51003A7B09 /* DesignSystem in Frameworks */,
 				A68C23AA2F7CF6B800592C85 /* FirebaseAnalytics in Frameworks */,
 				A68C23B02F7CF6B800592C85 /* FirebaseStorage in Frameworks */,
 				A68C23AC2F7CF6B800592C85 /* FirebaseAuth in Frameworks */,
@@ -80,6 +82,7 @@
 				A68C23AB2F7CF6B800592C85 /* FirebaseAuth */,
 				A68C23AD2F7CF6B800592C85 /* FirebaseFirestore */,
 				A68C23AF2F7CF6B800592C85 /* FirebaseStorage */,
+				A68750EE2F938B51003A7B09 /* DesignSystem */,
 			);
 			productName = Imako;
 			productReference = 677BB4192F7C96C700ABC72C /* Imako.app */;
@@ -111,6 +114,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A68C23A82F7CF6B800592C85 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				A68750ED2F938B51003A7B09 /* XCRemoteSwiftPackageReference "swift-design-system" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 677BB41A2F7C96C700ABC72C /* Products */;
@@ -274,6 +278,8 @@
 				DEVELOPMENT_TEAM = 2S7SVJKY9L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "持ち物の写真を撮影するために写真ライブラリへアクセスします";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真を登録するために写真ライブラリへアクセスします";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -307,6 +313,8 @@
 				DEVELOPMENT_TEAM = 2S7SVJKY9L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "持ち物の写真を撮影するために写真ライブラリへアクセスします";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真を登録するために写真ライブラリへアクセスします";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -354,6 +362,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A68750ED2F938B51003A7B09 /* XCRemoteSwiftPackageReference "swift-design-system" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/no-problem-dev/swift-design-system";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		A68C23A82F7CF6B800592C85 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -365,6 +381,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A68750EE2F938B51003A7B09 /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A68750ED2F938B51003A7B09 /* XCRemoteSwiftPackageReference "swift-design-system" */;
+			productName = DesignSystem;
+		};
 		A68C23A92F7CF6B800592C85 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A68C23A82F7CF6B800592C85 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

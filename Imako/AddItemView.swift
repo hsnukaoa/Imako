@@ -6,11 +6,14 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct AddItemView: View {
     @Environment(\.dismiss) var dismiss
     @State private var ItemName: String = ""
     @State private var canCall: Bool = false
+    @State private var showPicker: Bool = false
+    @State private var imageData: Data?
     
     var body: some View {
         
@@ -24,12 +27,13 @@ struct AddItemView: View {
                         .font(.title2)
                 }
                 .padding()
-                .glassEffect()
+                .glassEffect(.regular.interactive(), in: .circle)
+                .buttonStyle(.plain)
                 
                 Spacer()
                 
                 Text("持ち物を追加")
-                    .font(.headline)
+                    .font(.title3.bold())
                 
                 Spacer()
                 
@@ -40,22 +44,17 @@ struct AddItemView: View {
                     Image(systemName: "checkmark")
                         .font(.title2)
                         .foregroundStyle(.white)
-                        .padding()
                 }
-                .background(
-                    Capsule()
-                        .fill(Color.blue.opacity(0.7))
-                        .background(.ultraThinMaterial)
-                )
-                .clipShape(Capsule())
-                .foregroundStyle(.primary)
+                .padding()
+                .glassEffect(.regular.tint(.blue).interactive(), in: .circle)
+                .buttonStyle(.plain)
             }
             .padding()
             
             VStack{
                 HStack{
                     Text("名前を入力")
-                        .font(.title3)
+                        .font(.headline)
                     Spacer()
                 }
                 
@@ -68,35 +67,43 @@ struct AddItemView: View {
             VStack{
                 HStack{
                     Text("写真を追加")
-                        .font(.title3)
+                        .font(.headline)
                     Spacer()
                 }
                 
                 HStack{
                     ZStack(alignment: .bottomTrailing) {
                         
-                        Button{
-                            
-                        } label: {
-                            Image(systemName: "photo.on.rectangle.angled")
-                                .font(.system(size: 60))
-                                .foregroundStyle(.black.opacity(0.65))
-                                .padding()
+                        if let imageData, let uiImage = UIImage(data: imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 180)
+                        }else{
+                            Button{
+                                showPicker = true
+                            } label: {
+                                Image(systemName: "photo.on.rectangle.angled")
+                                    .font(.system(size: 60))
+                                    .foregroundStyle(.black.opacity(0.65))
+                                    .padding()
+                                    .background(Color.blue.opacity(0))
+                            }
+                            .frame(width: 180, height: 180)
+                            .background(Color.gray.opacity(0.25))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .buttonStyle(.plain)
                         }
-                        .frame(width: 180, height: 180)
-                        .background(Color.gray.opacity(0.25))
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
                         
                         Button{
-                            
+                            showPicker = true
                         } label: {
                             Image(systemName: "photo.badge.plus")
                                 .font(.system(size: 25))
-                                .foregroundStyle(.black)
                                 .padding(13)
-                                .glassEffect()
-                                .clipShape(Circle())
+                                .glassEffect(.regular, in: .circle)
                         }
+                        .buttonStyle(.plain)
                         .offset(x: 8, y: 8)
                     }
                     
@@ -118,7 +125,7 @@ struct AddItemView: View {
                 }
                 .padding()
                 
-                Text(canCall ? "重要な落とし物をしたときに、発見者があなたに電話をかけることができるようになります" : "")
+                Text(canCall ? "重大な落とし物をしたときに、発見者があなたに電話をかけることができるようになります" : "")
                     .padding()
                     .font(.callout)
             }
@@ -126,6 +133,7 @@ struct AddItemView: View {
             
             Spacer()
         }
+        .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
     }
 }
 

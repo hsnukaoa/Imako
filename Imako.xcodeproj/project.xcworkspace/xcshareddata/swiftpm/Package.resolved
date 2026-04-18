@@ -1,5 +1,5 @@
 {
-  "originHash" : "c63c63846d9c539229e96de38d6af51417e28c0ee9a0bc48bd0f0f19d923c329",
+  "originHash" : "d4acdc053b2cd199649b025de12cb5652823f048a5ca8b160ea9b42f3b2fc79e",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -116,6 +116,15 @@
       "state" : {
         "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
         "version" : "2.4.0"
+      }
+    },
+    {
+      "identity" : "swift-design-system",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/no-problem-dev/swift-design-system",
+      "state" : {
+        "branch" : "main",
+        "revision" : "52fae66de24b69d9c977ee5d3a52513021d3400c"
       }
     }
   ],
