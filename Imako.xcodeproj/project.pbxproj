@@ -12,6 +12,7 @@
 		A68C23AC2F7CF6B800592C85 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A68C23AB2F7CF6B800592C85 /* FirebaseAuth */; };
 		A68C23AE2F7CF6B800592C85 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A68C23AD2F7CF6B800592C85 /* FirebaseFirestore */; };
 		A68C23B02F7CF6B800592C85 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = A68C23AF2F7CF6B800592C85 /* FirebaseStorage */; };
+		A6BE7A3F2F947860008DB7EB /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = A6BE7A3E2F947860008DB7EB /* Cloudinary */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 			files = (
 				A68750EF2F938B51003A7B09 /* DesignSystem in Frameworks */,
 				A68C23AA2F7CF6B800592C85 /* FirebaseAnalytics in Frameworks */,
+				A6BE7A3F2F947860008DB7EB /* Cloudinary in Frameworks */,
 				A68C23B02F7CF6B800592C85 /* FirebaseStorage in Frameworks */,
 				A68C23AC2F7CF6B800592C85 /* FirebaseAuth in Frameworks */,
 				A68C23AE2F7CF6B800592C85 /* FirebaseFirestore in Frameworks */,
@@ -83,6 +85,7 @@
 				A68C23AD2F7CF6B800592C85 /* FirebaseFirestore */,
 				A68C23AF2F7CF6B800592C85 /* FirebaseStorage */,
 				A68750EE2F938B51003A7B09 /* DesignSystem */,
+				A6BE7A3E2F947860008DB7EB /* Cloudinary */,
 			);
 			productName = Imako;
 			productReference = 677BB4192F7C96C700ABC72C /* Imako.app */;
@@ -115,6 +118,7 @@
 			packageReferences = (
 				A68C23A82F7CF6B800592C85 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				A68750ED2F938B51003A7B09 /* XCRemoteSwiftPackageReference "swift-design-system" */,
+				A6BE7A3D2F947860008DB7EB /* XCRemoteSwiftPackageReference "cloudinary_ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 677BB41A2F7C96C700ABC72C /* Products */;
@@ -378,6 +382,14 @@
 				minimumVersion = 12.11.0;
 			};
 		};
+		A6BE7A3D2F947860008DB7EB /* XCRemoteSwiftPackageReference "cloudinary_ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cloudinary/cloudinary_ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.5;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -405,6 +417,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A68C23A82F7CF6B800592C85 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		A6BE7A3E2F947860008DB7EB /* Cloudinary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6BE7A3D2F947860008DB7EB /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
+			productName = Cloudinary;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

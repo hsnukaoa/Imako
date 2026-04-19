@@ -10,6 +10,7 @@ import DesignSystem
 
 struct AddItemView: View {
     @Environment(\.dismiss) var dismiss
+    @StateObject private var viewModel = ItemRegistrationViewModel()
     @State private var ItemName: String = ""
     @State private var canCall: Bool = false
     @State private var showPicker: Bool = false
@@ -39,12 +40,15 @@ struct AddItemView: View {
                 
                 
                 Button{
-                    dismiss()
+                    viewModel.registerNewItem(name: ItemName, image: UIImage(data: imageData!)!, canCall: canCall){
+                        dismiss()
+                    }
                 }label: {
                     Image(systemName: "checkmark")
                         .font(.title2)
                         .foregroundStyle(.white)
                 }
+                .disabled(ItemName.isEmpty || viewModel.isSaving || imageData == nil)
                 .padding()
                 .glassEffect(.regular.tint(.blue).interactive(), in: .circle)
                 .buttonStyle(.plain)
