@@ -6,3 +6,28 @@
 //
 
 import Foundation
+import Combine
+import FirebaseFirestore
+import FirebaseAuth
+
+class ItemListViewModel: ObservableObject{
+    @Published var items: [Item] = []
+    private let db = Firestore.firestore()
+    
+    func fetchItems(){
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        db.collection("items")
+            .whereField("ownerID", isEqualTo: uid)
+            .addSnapshotListener{ snapshot, error in
+                if let error = error {
+                    print("Error getting documents: \(error)")
+                }
+                
+                guard let documents = snapshot?.documents else { return }
+                
+                self.items = documents.compactMap{ doc in
+                    try? doc.data(as: Item.self)
+                }
+            }
+    }
+}
