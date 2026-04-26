@@ -78,39 +78,42 @@ struct ItemCard: View {
     let item: Item
     
     var body: some View {
-        HStack {
-            if let url = URL(string: item.imageURL) {
-                AsyncImage(url: url) { phase in
-                    if let image = phase.image {
-                        image.resizable()
-                            .scaledToFill()
-                    } else if phase.error != nil {
-                        Image(systemName: "photo.badge.exclamationmark")
-                            .foregroundStyle(.gray)
-                    } else {
-                        ProgressView()
+        NavigationLink(destination: BranchDetailView(item: item)) {
+            HStack {
+                if let url = URL(string: item.imageURL) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image.resizable()
+                                .scaledToFill()
+                        } else if phase.error != nil {
+                            Image(systemName: "photo.badge.exclamationmark")
+                                .foregroundStyle(.gray)
+                        } else {
+                            ProgressView()
+                        }
                     }
+                    .frame(width: 100, height: 165)
                 }
-                .frame(width: 100, height: 165)
+                
+                Text(item.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .padding()
+                
+                Spacer()
             }
-            
-            Text(item.name)
-                .font(.headline)
-                .lineLimit(1)
-                .padding()
-            
-            Spacer()
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(.background)
+                    .shadow(color: .red, radius: 4, x: 2, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(.black, lineWidth: 1)
+            )
         }
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.background)
-                .shadow(color: .red, radius: 4, x: 2, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(.black, lineWidth: 1)
-        )
+        .buttonStyle(.plain)
     }
 }
 
