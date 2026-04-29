@@ -13,14 +13,16 @@ struct Item: Codable, Identifiable{
     var name : String
     var ownerID : String
     var imageURL : String
-    var cancall : Bool
+    var canCall : Bool
     var createdAt: Date?
+    var lostNumber: Int?
     
-    init(name: String, ownerID: String, imageURL: String, canCall: Bool){
+    init(name: String, ownerID: String, imageURL: String, canCall: Bool, lostNumber: Int){
         self.name = name
         self.ownerID = ownerID
         self.imageURL = imageURL
-        self.cancall = canCall
+        self.canCall = canCall
         self.createdAt = Date()
+        self.lostNumber = lostNumber
     }
 }

@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OwnersItemView: View {
-    let item: Item
+    @State var item: Item
+    private let dbservice = DatabaseService()
     
     var body: some View {
         ZStack{
@@ -26,8 +27,18 @@ struct OwnersItemView: View {
                             ProgressView()
                         }
                     }
-                    .frame(height: 400)
+                    .frame(height: 450)
+                    .clipped()
                 }
+                
+                HStack{
+                    Text("なくした回数:\(String(item.lostNumber ?? 0))")
+                        .font(.title.bold())
+                        .padding()
+                    Spacer()
+                }
+                .padding()
+                
                 Spacer()
             }
             .ignoresSafeArea(edges: .top)
@@ -50,14 +61,25 @@ struct OwnersItemView: View {
         .safeAreaBar(edge: .top) {
             header
         }
+        .safeAreaBar(edge: .bottom) {
+            footer
+                .padding()
+        }
         .toolbar{
             ToolbarItem(placement:.topBarTrailing){
-                Button{}label:{
+                Button{
+                    item.canCall.toggle()
+                    
+                    if let itemID = item.id {
+                        dbservice.updateCanCall(itemID: itemID, canCall: item.canCall)
+                    }
+                }label:{
                     Image(systemName: "phone.badge.checkmark")
                         .foregroundStyle(.black)
                 }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color.teal.opacity(0.6))
+                .buttonStyle(.borderedProminent)
+                .tint(item.canCall ? Color.teal.opacity(0.6) : Color.gray.opacity(0.3))
+                .id(item.canCall)
             }
             
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
@@ -67,8 +89,8 @@ struct OwnersItemView: View {
                     Image(systemName: "qrcode")
                         .foregroundStyle(Color.black)
                 }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color.yellow.opacity(0.3))
+                .buttonStyle(.borderedProminent)
+                .tint(Color.yellow.opacity(0.3))
             }
         }
     }
@@ -80,6 +102,20 @@ struct OwnersItemView: View {
                 .fontWeight(.bold)
                 .padding(.leading)
             Spacer()
+        }
+    }
+    
+    private var footer: some View {
+        HStack{
+            Spacer()
+            Button{
+            }label: {
+                Image(systemName: "square.and.pencil")
+                    .font(.title2)
+            }
+            .padding()
+            .glassEffect(.regular.interactive(), in: .circle)
+            .buttonStyle(.plain)
         }
     }
 }

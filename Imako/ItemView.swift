@@ -106,7 +106,7 @@ struct ItemCard: View {
             .background(
                 RoundedRectangle(cornerRadius: 14)
                     .fill(.background)
-                    .shadow(color: .red, radius: 4, x: 2, y: 4)
+                    .shadow(color: Color(red: .random(in: 0...1), green: .random(in: 0...1), blue: .random(in: 0...1)), radius: 4, x: 2, y: 4)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14)

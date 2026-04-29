@@ -23,6 +23,16 @@ class DatabaseService {
             completion(nil)
         }
     }
+    
+    func updateCanCall(itemID: String, canCall: Bool) {
+        db.collection("items").document(itemID).updateData([
+            "canCall": canCall
+        ]) { error in
+            if let error = error {
+                print("Firebase更新エラー: \(error)")
+            }
+        }
+    }
 }
 
 class ItemRegistrationViewModel: ObservableObject{
@@ -34,7 +44,7 @@ class ItemRegistrationViewModel: ObservableObject{
         Auth.auth().currentUser?.uid
     }
     
-    func registerNewItem(name: String, image: UIImage, canCall: Bool, completion: @escaping () -> Void) {
+    func registerNewItem(name: String, image: UIImage, canCall: Bool, lostNumber: Int?, completion: @escaping () -> Void) {
         
         guard let uid = currentUserID else {
             print("エラー: ログインしていません")
@@ -56,7 +66,8 @@ class ItemRegistrationViewModel: ObservableObject{
                 name: name,
                 ownerID: uid,
                 imageURL: url,
-                canCall: canCall
+                canCall: canCall,
+                lostNumber: lostNumber ?? 0
             )
             
             self.dbService.saveItem(item: newItem) { documentID in

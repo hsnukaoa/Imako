@@ -40,7 +40,7 @@ struct AddItemView: View {
                 
                 
                 Button{
-                    viewModel.registerNewItem(name: ItemName, image: UIImage(data: imageData!)!, canCall: canCall){
+                    viewModel.registerNewItem(name: ItemName, image: UIImage(data: imageData!)!, canCall: canCall, lostNumber: 0){
                         dismiss()
                     }
                 }label: {
