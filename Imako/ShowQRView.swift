@@ -8,11 +8,39 @@
 import SwiftUI
 
 struct ShowQRView: View {
+    let item: Item
+    @Environment(\.dismiss) var dismiss
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack{
+            HStack{
+                Button{
+                    dismiss()
+                }label: {
+                    Image(systemName: "multiply")
+                        .foregroundStyle(.black)
+                        .font(.title2)
+                }
+                .padding()
+                .glassEffect(.regular.interactive(), in: .circle)
+                .buttonStyle(.plain)
+                
+                Spacer()
+            }
+            .padding()
+            
+            Spacer()
+            
+            Text("\(item.name)のQRコード")
+                .font(.title2.bold())
+                .padding()
+            QrCodeView(data: String(item.id!))
+                .frame(maxWidth: 200, maxHeight: 200)
+                .padding()
+            
+            
+            Spacer()
+            Spacer()
+        }
     }
-}
-
-#Preview {
-    ShowQRView()
 }

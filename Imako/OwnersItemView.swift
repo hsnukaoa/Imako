@@ -10,6 +10,7 @@ import SwiftUI
 struct OwnersItemView: View {
     @State var item: Item
     private let dbservice = DatabaseService()
+    @State var ShowQRSheet: Bool = false
     
     var body: some View {
         ZStack{
@@ -85,13 +86,18 @@ struct OwnersItemView: View {
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
             
             ToolbarItem(placement:.topBarTrailing){
-                Button{}label: {
+                Button{
+                    ShowQRSheet.toggle()
+                }label: {
                     Image(systemName: "qrcode")
                         .foregroundStyle(Color.black)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(Color.yellow.opacity(0.3))
             }
+        }
+        .fullScreenCover(isPresented: $ShowQRSheet){
+            ShowQRView(item: item)
         }
     }
     
