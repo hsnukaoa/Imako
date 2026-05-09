@@ -5,7 +5,6 @@
 //  Created by 宇田川航太 on 2026/05/02.
 //
 
-
 import CoreImage.CIFilterBuiltins
 import SwiftUI
 
@@ -13,21 +12,24 @@ struct QrCodeView: View {
     var data: String
     
     var body: some View {
-        Image(uiImage: qrImage)
+        let image = qrImage
+        
+        Image(uiImage: image)
             .interpolation(.none)
             .resizable()
             .scaledToFit()
             .accessibilityLabel(Text("QRCode"))
             .contextMenu {
                 Button {
-                    // Add this item to a list of favorites.
+                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
                 } label: {
                     Label("写真に保存", systemImage: "photo.badge.arrow.down")
                 }
-                Button {
-                    // Open Maps and center it on this item.
-                } label: {
-                    Label("共有", systemImage: "square.and.arrow.up")
+                
+                if let pdfURL = generatePDF(from: image) {
+                    ShareLink(item: pdfURL) {
+                        Label("PDFとして共有", systemImage: "square.and.arrow.up")
+                    }
                 }
             }
     }
@@ -36,13 +38,38 @@ struct QrCodeView: View {
         let qrCodeGenerator = CIFilter.qrCodeGenerator()
         qrCodeGenerator.message = Data(data.utf8)
         qrCodeGenerator.correctionLevel = "H"
-        if let outputimage = qrCodeGenerator.outputImage {
-            if let cgImage = CIContext().createCGImage(
-                outputimage, from: outputimage.extent) {
-                return UIImage(cgImage: cgImage)
-            }
+        
+        guard let outputImage = qrCodeGenerator.outputImage else {
+            return UIImage()
         }
+        
+        let transform = CGAffineTransform(scaleX: 10, y: 10)
+        let scaledImage = outputImage.transformed(by: transform)
+        
+        if let cgImage = CIContext().createCGImage(scaledImage, from: scaledImage.extent) {
+            return UIImage(cgImage: cgImage)
+        }
+        
         return UIImage()
+    }
+    
+    private func generatePDF(from image: UIImage) -> URL? {
+        let format = UIGraphicsPDFRendererFormat()
+        let bounds = CGRect(origin: .zero, size: image.size)
+        let renderer = UIGraphicsPDFRenderer(bounds: bounds, format: format)
+        
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("QRCode.pdf")
+        
+        do {
+            try renderer.writePDF(to: tempURL) { context in
+                context.beginPage()
+                image.draw(in: bounds)
+            }
+            return tempURL
+        } catch {
+            print("PDFの生成に失敗しました: \(error)")
+            return nil
+        }
     }
 }
 
