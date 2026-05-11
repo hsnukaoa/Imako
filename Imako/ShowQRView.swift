@@ -34,7 +34,7 @@ struct ShowQRView: View {
             Text("\(item.name)のQRコード")
                 .font(.title2.bold())
                 .padding()
-            QrCodeView(data: String(item.id!))
+            QrCodeView(item: item)
                 .frame(maxWidth: 200, maxHeight: 200)
                 .padding()
             

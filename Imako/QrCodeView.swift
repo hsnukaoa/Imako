@@ -9,7 +9,18 @@ import CoreImage.CIFilterBuiltins
 import SwiftUI
 
 struct QrCodeView: View {
-    var data: String
+    var item: Item?
+    @State private var data: String
+    
+    init(item: Item) {
+        self.item = item
+        self._data = State(initialValue: String(item.id!))
+    }
+    
+    init(data: String) {
+        self.item = nil
+        self._data = State(initialValue: data)
+    }
     
     var body: some View {
         let image = qrImage
@@ -58,7 +69,7 @@ struct QrCodeView: View {
         let bounds = CGRect(origin: .zero, size: image.size)
         let renderer = UIGraphicsPDFRenderer(bounds: bounds, format: format)
         
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("QRCode.pdf")
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(item?.name ?? "QRCode").pdf")
         
         do {
             try renderer.writePDF(to: tempURL) { context in
@@ -72,8 +83,8 @@ struct QrCodeView: View {
         }
     }
 }
-
 #Preview {
     QrCodeView(data: "abc")
         .frame(width: 150, height: 150)
 }
+

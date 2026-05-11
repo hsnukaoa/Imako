@@ -8,11 +8,10 @@
 import SwiftUI
 
 struct ScanView: View {
+    @State  private var itemID: String
+    
     var body: some View {
-        Text("This is ScanView")
+        QRCodeScanner(recognizedPayload: $itemID)
+            .ignoresSafeArea()
     }
-}
-
-#Preview {
-    ScanView()
 }
