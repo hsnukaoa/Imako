@@ -11,7 +11,8 @@ import Vision
 import FirebaseFirestore
 
 struct QRCodeScanner: UIViewControllerRepresentable {
-    @Binding var  recognizedPayload: String
+    var onResult: (Item) -> Void
+    
     private let db = Firestore.firestore()
     
     func makeUIViewController(context: Context) -> DataScannerViewController {
@@ -28,39 +29,48 @@ struct QRCodeScanner: UIViewControllerRepresentable {
         Coordinator(self)
     }
     
-    final class Coordinator: NSObject, DataScannerViewControllerDelegate{
+    final class Coordinator: NSObject, DataScannerViewControllerDelegate {
         private let parent: QRCodeScanner
+        private var isFetching = false
         
         init(_ qrCodeScanner: QRCodeScanner) {
             self.parent = qrCodeScanner
         }
         
         func dataScanner(_ dataScanner: DataScannerViewController, didAdd addedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-            guard case .barcode(let barcode) = addedItems.first else {
+            guard !isFetching, case .barcode(let barcode) = addedItems.first else {
                 return
             }
             
             if let payloadStringValue = barcode.payloadStringValue {
-                parent.db.collection("items").whereField("id", isEqualTo: payloadStringValue).getDocuments { snapshot, _ in
+                isFetching = true
+                
+                Task { @MainActor in
+                    defer { self.isFetching = false }
                     
-                    if let document = snapshot?.documents.first {
-                        let item = document
+                    do {
+                        let snapshot = try await parent.db.collection("items")
+                            .whereField("id", isEqualTo: payloadStringValue)
+                            .getDocuments()
                         
-                        // UIの更新を伴うためメインスレッドで実行
-                        DispatchQueue.main.async {
-                            self.parent.recognizedPayload = payloadStringValue
+                        if let document = snapshot.documents.first {
+                            if let fetchedItem = try? document.data(as: Item.self) {
+                                self.parent.onResult(fetchedItem)
+                            } else {
+                                print("Item型へのデコードに失敗しました")
+                            }
                         }
+                    } catch {
+                        print("データの取得に失敗しました: \(error.localizedDescription)")
                     }
                 }
             }
         }
         
         func dataScanner(_ dataScanner: DataScannerViewController, didRemove removedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-            parent.recognizedPayload = ""
         }
     }
     
     func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
     }
 }
-

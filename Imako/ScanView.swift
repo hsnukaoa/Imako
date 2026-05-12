@@ -8,10 +8,17 @@
 import SwiftUI
 
 struct ScanView: View {
-    @State  private var itemID: String
+    @State private var path = NavigationPath()
     
     var body: some View {
-        QRCodeScanner(recognizedPayload: $itemID)
+        NavigationStack(path: $path) {
+            QRCodeScanner { item in
+                path.append(item)
+            }
             .ignoresSafeArea()
+            .navigationDestination(for: Item.self) { item in
+                BranchDetailView(item: item)
+            }
+        }
     }
 }
