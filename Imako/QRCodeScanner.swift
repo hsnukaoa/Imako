@@ -1,16 +1,11 @@
-//
-//  QRCodeScanner.swift
-//  Imako
-//
-//  Created by 宇田川航太 on 2026/05/11.
-//
-
 import SwiftUI
 import VisionKit
 import Vision
 import FirebaseFirestore
 
 struct QRCodeScanner: UIViewControllerRepresentable {
+    // スキャン状態を管理するフラグを追加
+    @Binding var isScanning: Bool
     var onResult: (Item) -> Void
     
     private let db = Firestore.firestore()
@@ -21,12 +16,24 @@ struct QRCodeScanner: UIViewControllerRepresentable {
             isHighlightingEnabled: true
         )
         dataScannerViewController.delegate = context.coordinator
-        try? dataScannerViewController.startScanning()
         return dataScannerViewController
     }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
+    }
+    
+    // ここで isScanning の状態を監視して、スキャンの開始・停止を切り替えます
+    func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
+        if isScanning {
+            if !uiViewController.isScanning {
+                try? uiViewController.startScanning()
+            }
+        } else {
+            if uiViewController.isScanning {
+                uiViewController.stopScanning()
+            }
+        }
     }
     
     final class Coordinator: NSObject, DataScannerViewControllerDelegate {
@@ -38,26 +45,21 @@ struct QRCodeScanner: UIViewControllerRepresentable {
         }
         
         func dataScanner(_ dataScanner: DataScannerViewController, didAdd addedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-            guard !isFetching, case .barcode(let barcode) = addedItems.first else {
-                return
-            }
+            guard !isFetching, case .barcode(let barcode) = addedItems.first else { return }
             
             if let payloadStringValue = barcode.payloadStringValue {
                 isFetching = true
                 
                 Task { @MainActor in
-                    defer { self.isFetching = false }
+                    defer { self.isFetching = false } // ここでフラグは確実にリセットされています
                     
                     do {
-                        let snapshot = try await parent.db.collection("items")
-                            .whereField("id", isEqualTo: payloadStringValue)
-                            .getDocuments()
+                        let documentRef = parent.db.collection("items").document(payloadStringValue)
+                        let document = try await documentRef.getDocument()
                         
-                        if let document = snapshot.documents.first {
+                        if document.exists {
                             if let fetchedItem = try? document.data(as: Item.self) {
                                 self.parent.onResult(fetchedItem)
-                            } else {
-                                print("Item型へのデコードに失敗しました")
                             }
                         }
                     } catch {
@@ -66,11 +68,5 @@ struct QRCodeScanner: UIViewControllerRepresentable {
                 }
             }
         }
-        
-        func dataScanner(_ dataScanner: DataScannerViewController, didRemove removedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-        }
-    }
-    
-    func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
     }
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct OthersItemView: View {
     var body: some View {
         Text("You aren't owner")
+            .toolbar(.hidden, for: .tabBar)
     }
 }
 

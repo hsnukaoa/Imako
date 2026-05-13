@@ -9,15 +9,22 @@ import SwiftUI
 
 struct ScanView: View {
     @State private var path = NavigationPath()
+    @State private var isScanning = true
     
     var body: some View {
         NavigationStack(path: $path) {
-            QRCodeScanner { item in
+            QRCodeScanner(isScanning: $isScanning) { item in
+                isScanning = false
                 path.append(item)
             }
             .ignoresSafeArea()
             .navigationDestination(for: Item.self) { item in
                 BranchDetailView(item: item)
+            }
+        }
+        .onChange(of: path.count) { _, newCount in
+            if newCount == 0 {
+                isScanning = true
             }
         }
     }

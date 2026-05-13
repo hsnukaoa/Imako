@@ -99,6 +99,7 @@ struct OwnersItemView: View {
         .fullScreenCover(isPresented: $ShowQRSheet){
             ShowQRView(item: item)
         }
+        .toolbar(.hidden, for: .tabBar)
     }
     
     private var header: some View {
