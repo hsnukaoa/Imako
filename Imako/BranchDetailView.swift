@@ -22,7 +22,7 @@ struct BranchDetailView: View {
         if isOwner{
             OwnersItemView(item: item)
         }else{
-            OthersItemView()
+            OthersItemView(item: item)
         }
     }
 }

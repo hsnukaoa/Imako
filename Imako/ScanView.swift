@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ScanView: View {
     @State private var path = NavigationPath()
-    @State private var isScanning = true
+    @State private var isScanning = false
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -18,6 +18,14 @@ struct ScanView: View {
                 path.append(item)
             }
             .ignoresSafeArea()
+            .onAppear {
+                if path.isEmpty {
+                    isScanning = true
+                }
+            }
+            .onDisappear {
+                isScanning = false
+            }
             .navigationDestination(for: Item.self) { item in
                 BranchDetailView(item: item)
             }
