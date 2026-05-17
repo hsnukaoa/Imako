@@ -4,7 +4,6 @@ import Vision
 import FirebaseFirestore
 
 struct QRCodeScanner: UIViewControllerRepresentable {
-    // スキャン状態を管理するフラグを追加
     @Binding var isScanning: Bool
     var onResult: (Item) -> Void
     
@@ -23,7 +22,6 @@ struct QRCodeScanner: UIViewControllerRepresentable {
         Coordinator(self)
     }
     
-    // ここで isScanning の状態を監視して、スキャンの開始・停止を切り替えます
     func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
         if isScanning {
             if !uiViewController.isScanning {

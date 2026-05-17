@@ -24,6 +24,7 @@ struct ContactView: View {
             .background(Color.red)
             .foregroundStyle(.white)
             .clipShape(.capsule)
+            .buttonStyle(.plain)
         }
     }
 }

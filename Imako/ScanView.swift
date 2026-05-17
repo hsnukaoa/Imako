@@ -32,7 +32,13 @@ struct ScanView: View {
         }
         .onChange(of: path.count) { _, newCount in
             if newCount == 0 {
-                isScanning = true
+                Task {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    
+                    if path.isEmpty {
+                        isScanning = true
+                    }
+                }
             }
         }
     }
