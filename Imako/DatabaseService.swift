@@ -33,6 +33,26 @@ class DatabaseService {
             }
         }
     }
+    
+    func createChat(chat: Chats, completion: @escaping (String?) -> Void){
+        do{
+            let ref = try db.collection("chats").addDocument(from: chat)
+            completion(ref.documentID)
+        }catch{
+            print("FirebaseFirestore保存エラー: \(error)")
+            completion(nil)
+        }
+    }
+    
+    func registerUser(user: User, completion: @escaping (String?) -> Void) {
+        do{
+            let ref = try db.collection("users").addDocument(from: user)
+            completion(ref.documentID)
+        }catch{
+            print("FirebaseFireStore保存エラー: \(error)")
+            completion(nil)
+        }
+    }
 }
 
 class ItemRegistrationViewModel: ObservableObject{
@@ -74,13 +94,56 @@ class ItemRegistrationViewModel: ObservableObject{
                 DispatchQueue.main.async {
                     self.isSaving = false
                     
-                    if let id = documentID {
-                        print("すべての保存が完了！QRコード用のID: \(id)")
-                    }
-                    
                     completion()
                 }
             }
+        }
+    }
+}
+
+class ChatCreateViewModel: ObservableObject{
+    private let dbService = DatabaseService()
+    
+    var currentUserID: String? {
+        Auth.auth().currentUser?.uid
+    }
+    
+    func createChat(sentBy: String, sentTo: String, completion: @escaping () -> Void) {
+        guard let uid = currentUserID else {
+            print("エラー: ログインしていません")
+            return
+        }
+        
+        let chat = Chats(
+            sentBy: sentBy,
+            sentTo: sentTo
+        )
+        
+        dbService.createChat(chat: chat) { documentID in
+            completion()
+        }
+    }
+}
+
+class UserRegistrationViewModel: ObservableObject{
+    private let dbService = DatabaseService()
+    
+    var currentUserID: String? {
+        Auth.auth().currentUser?.uid
+    }
+    
+    func registerUser(completion: @escaping () -> Void) {
+        guard let uid = currentUserID else {
+            print("エラー: ログインしていません")
+            return
+        }
+        
+        let user = User(
+            id: uid
+        )
+        
+        dbService.registerUser(user: user){ documentID in
+            completion()
         }
     }
 }
