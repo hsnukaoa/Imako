@@ -84,7 +84,7 @@ struct QrCodeView: View {
     }
 }
 #Preview {
-    QrCodeView(data: "abc")
+    QrCodeView(data: "0dtK4IOIULeT5dkUqwK4")
         .frame(width: 150, height: 150)
 }
 

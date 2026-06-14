@@ -49,16 +49,21 @@ struct QRCodeScanner: UIViewControllerRepresentable {
                 isFetching = true
                 
                 Task { @MainActor in
-                    defer { self.isFetching = false } // ここでフラグは確実にリセットされています
+                    defer { self.isFetching = false }
                     
                     do {
                         let documentRef = parent.db.collection("items").document(payloadStringValue)
                         let document = try await documentRef.getDocument()
                         
                         if document.exists {
-                            if let fetchedItem = try? document.data(as: Item.self) {
+                            do {
+                                let fetchedItem = try document.data(as: Item.self)
                                 self.parent.onResult(fetchedItem)
+                            } catch {
+                                print("デコードエラー: \(error)")
                             }
+                        } else {
+                            print("ドキュメントが存在しません。検索したID: \(payloadStringValue)")
                         }
                     } catch {
                         print("データの取得に失敗しました: \(error.localizedDescription)")
