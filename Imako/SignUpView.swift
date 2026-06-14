@@ -76,6 +76,7 @@ struct SignUpView: View {
                     }
                     
                     vm.signUp(email: email, password: password)
+                    
                 }label: {
                     Text("アカウント作成")
                         .foregroundStyle(.white)

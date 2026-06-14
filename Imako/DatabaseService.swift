@@ -124,10 +124,10 @@ class ChatCreateViewModel: ObservableObject {
         Auth.auth().currentUser?.uid
     }
     
-    func createChat(sentBy: String, sentTo: String, completion: @escaping (Bool) -> Void) {
+    func createChat(sentBy: String, sentTo: String, completion: @escaping (Bool, String?) -> Void) {
         guard currentUserID != nil else {
             print("エラー: ログインしていません")
-            completion(false)
+            completion(false, nil)
             return
         }
         
@@ -136,12 +136,12 @@ class ChatCreateViewModel: ObservableObject {
             sentTo: sentTo
         )
         
-        dbService.createChat(chat: chat) { documentID in
+        self.dbService.createChat(chat: chat) { documentID in
             DispatchQueue.main.async {
                 if documentID != nil {
-                    completion(true)
+                    completion(true, documentID)
                 } else {
-                    completion(false)
+                    completion(false, nil)
                 }
             }
         }

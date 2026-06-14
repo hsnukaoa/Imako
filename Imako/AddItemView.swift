@@ -17,12 +17,11 @@ struct AddItemView: View {
     @State private var showPicker: Bool = false
     @State private var imageData: Data?
     
-    // エラー表示用のアラート状態
     @State private var showErrorAlert: Bool = false
     @State private var alertMessage: String = ""
     
     var body: some View {
-        ZStack { // ローディングを重ねるためにZStackを使用
+        ZStack {
             VStack{
                 HStack{
                     Button{
@@ -44,14 +43,12 @@ struct AddItemView: View {
                     Spacer()
                     
                     Button{
-                        // 修正①: 安全にUIImageを取り出す（オプショナルバインディング）
                         guard let data = imageData, let uiImage = UIImage(data: data) else {
                             alertMessage = "画像の読み込みに失敗しました。"
                             showErrorAlert = true
                             return
                         }
                         
-                        // 修正②: 引数の戻り値（success）を判定する
                         viewModel.registerNewItem(name: ItemName, image: uiImage, canCall: canCall, lostNumber: 0) { success in
                             if success {
                                 dismiss()
@@ -65,7 +62,6 @@ struct AddItemView: View {
                             .font(.title2)
                             .foregroundStyle(.white)
                     }
-                    // 保存中は連打できないように制御
                     .disabled(ItemName.isEmpty || viewModel.isSaving || imageData == nil)
                     .padding()
                     .glassEffect(.regular.tint(.blue).interactive(), in: .circle)
@@ -153,18 +149,14 @@ struct AddItemView: View {
                 
                 Spacer()
             }
-            .blur(radius: viewModel.isSaving ? 3 : 0) // 保存中は背景を少しぼかす
+            .blur(radius: viewModel.isSaving ? 3 : 0)
             
-            // 修正③: 保存中のローディング表示
             if viewModel.isSaving {
-                ZStack { // GroupではなくZStackで完全にひとまとめにする
-                    
-                    // 背景の暗転（Colorではなく、明確な図形であるRectangleを使うことでエラーを完全に防ぐ）
+                ZStack {
                     Rectangle()
                         .fill(Color.black.opacity(0.15))
                         .ignoresSafeArea()
                     
-                    // ローディングUI
                     VStack(spacing: 12) {
                         ProgressView()
                             .scaleEffect(1.5)
@@ -178,7 +170,6 @@ struct AddItemView: View {
             }
         }
         .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
-        // エラー表示用のアラート
         .alert("エラー", isPresented: $showErrorAlert) {
             Button("OK", role: .cancel) { }
         } message: {

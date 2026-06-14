@@ -6,13 +6,22 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct OthersItemView: View {
     @State var item: Item
     private let dbservice = DatabaseService()
     @State var ShowQRSheet: Bool = false
+    @StateObject private var viewModel = ChatCreateViewModel()
+    @State private var sentTo: String = ""
     
     var body: some View {
+        var currentUserID: String{
+            Auth.auth().currentUser!.uid
+        }
+        
+        let sentToUserID: String = String(item.ownerID)
+        
         ZStack{
             VStack {
                 if let url = URL(string: item.imageURL) {
@@ -31,6 +40,21 @@ struct OthersItemView: View {
                     .frame(height: 450)
                     .clipped()
                 }
+                Spacer()
+                
+                Button{
+                    viewModel.createChat(sentBy: currentUserID, sentTo: sentToUserID) {bool, docID in
+                        if let docID = docID {
+                            item.chatIDs?.append(docID)
+                        }
+                    }
+                }label: {
+                    Text("通話を開始する")
+                        .background(Color.green)
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+                
                 Spacer()
             }
             .ignoresSafeArea(edges: .top)
