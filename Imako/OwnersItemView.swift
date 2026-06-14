@@ -13,7 +13,7 @@ struct OwnersItemView: View {
     @State var ShowQRSheet: Bool = false
     
     var body: some View {
-        ZStack{
+        ScrollView{
             VStack {
                 if let url = URL(string: item.imageURL) {
                     AsyncImage(url: url) { phase in
@@ -21,6 +21,9 @@ struct OwnersItemView: View {
                             image
                                 .resizable()
                                 .scaledToFill()
+                                .frame(height: 450)
+                                .clipped()
+                                .stretchy()
                         } else if phase.error != nil {
                             Image(systemName: "photo.badge.exclamationmark")
                                 .foregroundStyle(.gray)
@@ -28,8 +31,6 @@ struct OwnersItemView: View {
                             ProgressView()
                         }
                     }
-                    .frame(height: 450)
-                    .clipped()
                 }
                 
                 HStack{
@@ -43,22 +44,8 @@ struct OwnersItemView: View {
                 Spacer()
             }
             .ignoresSafeArea(edges: .top)
-            .scrollEdgeEffectStyle(.soft, for: .top)
-            
-            Rectangle()
-                .fill(.regularMaterial)
-                .mask(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .black, location: 0.0),
-                            .init(color: .clear, location: 0.22)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .ignoresSafeArea(edges: .top)
         }
+        .ignoresSafeArea(edges: .top)
         .safeAreaBar(edge: .top) {
             header
         }

@@ -34,6 +34,33 @@ class DatabaseService {
         }
     }
     
+    func updateItemChatsArray(itemID: String, chatID: String) {
+        db.collection("items").document(itemID).updateData([
+            "chats": FieldValue.arrayUnion([chatID])
+        ]) { error in
+            if let error = error {
+                print("Firebase更新エラー: \(error)")
+            }
+        }
+    }
+    
+    func updateUserChatsArray(finderID: String, dropperID: String, chatID: String){
+        db.collection("users").document(finderID).updateData([
+            "chats": FieldValue.arrayUnion([chatID])
+        ]) { error in
+            if let error = error {
+                print("Firebase更新エラー: \(error)")
+            }
+        }
+        db.collection("users").document(dropperID).updateData([
+            "chats": FieldValue.arrayUnion([chatID])
+        ]) { error in
+            if let error = error {
+                print("Firebase更新エラー: \(error)")
+            }
+        }
+    }
+    
     func createChat(chat: Chats, completion: @escaping (String?) -> Void) {
         do {
             let ref = try db.collection("chats").addDocument(from: chat)
@@ -145,6 +172,14 @@ class ChatCreateViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    func UpdateItemArray(chatID: String,itemID: String, completion: @escaping (Bool) -> Void) {
+        self.dbService.updateItemChatsArray(itemID: itemID, chatID: chatID)
+    }
+    
+    func UpdateUserArray(chatID: String, finderID: String, dropperID: String, completion: @escaping (Bool) -> Void){
+        self.dbService.updateUserChatsArray(finderID: finderID, dropperID: dropperID, chatID: chatID)
     }
 }
 

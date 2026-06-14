@@ -12,6 +12,7 @@ import Combine
 class AuthViewModel: ObservableObject{
     @Published var isLoggedIn = false
     @Published var errorMessage: String?
+    @StateObject private var viewModel = UserRegistrationViewModel()
     
     init(){
         isLoggedIn = Auth.auth().currentUser != nil
@@ -25,6 +26,8 @@ class AuthViewModel: ObservableObject{
                     return
                 } else {
                     self.isLoggedIn = true
+                    self.viewModel.registerUser{ success in
+                    }
                 }
             }
         }

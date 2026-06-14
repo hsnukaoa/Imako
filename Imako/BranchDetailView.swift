@@ -17,7 +17,6 @@ struct BranchDetailView: View {
         return item.ownerID == uid
     }
     
-    @ViewBuilder
     var body: some View{
         if isOwner{
             OwnersItemView(item: item)

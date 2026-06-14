@@ -22,7 +22,7 @@ struct OthersItemView: View {
         
         let sentToUserID: String = String(item.ownerID)
         
-        ZStack{
+        ScrollView {
             VStack {
                 if let url = URL(string: item.imageURL) {
                     AsyncImage(url: url) { phase in
@@ -30,6 +30,9 @@ struct OthersItemView: View {
                             image
                                 .resizable()
                                 .scaledToFill()
+                                .frame(height: 450)
+                                .clipped()
+                                .stretchy()
                         } else if phase.error != nil {
                             Image(systemName: "photo.badge.exclamationmark")
                                 .foregroundStyle(.gray)
@@ -37,44 +40,45 @@ struct OthersItemView: View {
                             ProgressView()
                         }
                     }
-                    .frame(height: 450)
-                    .clipped()
                 }
-                Spacer()
+                
+                
+                HStack{
+                    Text("連絡を取る")
+                        .font(.title.bold())
+                        .padding()
+                    
+                    Spacer()
+                }
+                .padding()
                 
                 Button{
                     viewModel.createChat(sentBy: currentUserID, sentTo: sentToUserID) {bool, docID in
                         if let docID = docID {
-                            item.chatIDs?.append(docID)
+                            if let itemID = item.id {
+                                viewModel.UpdateItemArray(chatID: docID, itemID: itemID) { success in
+                                }
+                                viewModel.UpdateUserArray(chatID: docID, finderID: currentUserID, dropperID: sentToUserID){ success in
+                                }
+                            }
+                            
                         }
                     }
                 }label: {
-                    Text("通話を開始する")
+                    Text("チャットを開始する")
+                        .padding()
                         .background(Color.green)
                         .foregroundStyle(.white)
+                        .clipShape(.capsule)
                 }
+                .glassEffect(.regular.interactive())
                 .buttonStyle(.plain)
+                .padding(.top)
                 
-                Spacer()
             }
-            .ignoresSafeArea(edges: .top)
-            .scrollEdgeEffectStyle(.soft, for: .top)
-            
-            Rectangle()
-                .fill(.regularMaterial)
-                .mask(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .black, location: 0.0),
-                            .init(color: .clear, location: 0.22)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .ignoresSafeArea(edges: .top)
         }
-        .safeAreaBar(edge: .top) {
+        .ignoresSafeArea(edges: .top)
+        .safeAreaBar(edge: .top){
             header
         }
         .toolbar(.hidden, for: .tabBar)
@@ -87,6 +91,24 @@ struct OthersItemView: View {
                 .fontWeight(.bold)
                 .padding(.leading)
             Spacer()
+        }
+    }
+}
+
+extension View {
+    func stretchy() -> some View {
+        visualEffect { effect, geometry in
+            let currentHeight = geometry.size.height
+            let scrollOffset = geometry.frame(in: .scrollView).minY
+            let positiveOffset = max(0, scrollOffset)
+            
+            let newHeight = currentHeight + positiveOffset
+            let scaleFactor = newHeight / currentHeight
+            
+            return effect.scaleEffect(
+                x: scaleFactor, y: scaleFactor,
+                anchor: .bottom
+            )
         }
     }
 }
