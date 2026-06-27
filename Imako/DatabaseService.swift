@@ -151,7 +151,7 @@ class ChatCreateViewModel: ObservableObject {
         Auth.auth().currentUser?.uid
     }
     
-    func createChat(sentBy: String, sentTo: String, completion: @escaping (Bool, String?) -> Void) {
+    func createChat(sentBy: String, sentTo: String,itemName:String, completion: @escaping (Bool, String?) -> Void) {
         guard currentUserID != nil else {
             print("エラー: ログインしていません")
             completion(false, nil)
@@ -160,7 +160,8 @@ class ChatCreateViewModel: ObservableObject {
         
         let chat = Chats(
             sentBy: sentBy,
-            sentTo: sentTo
+            sentTo: sentTo,
+            itemName: itemName
         )
         
         self.dbService.createChat(chat: chat) { documentID in

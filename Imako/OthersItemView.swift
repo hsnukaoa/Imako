@@ -53,7 +53,7 @@ struct OthersItemView: View {
                 .padding()
                 
                 Button{
-                    viewModel.createChat(sentBy: currentUserID, sentTo: sentToUserID) {bool, docID in
+                    viewModel.createChat(sentBy: currentUserID, sentTo: sentToUserID, itemName: item.name) {bool, docID in
                         if let docID = docID {
                             if let itemID = item.id {
                                 viewModel.UpdateItemArray(chatID: docID, itemID: itemID) { success in
