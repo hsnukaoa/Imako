@@ -10,33 +10,36 @@ import FirebaseAuth
 
 struct ContactView: View {
     @ObservedObject private var viewModel = ChatListViewModel()
+    @ObservedObject var vm: AuthViewModel
     
     var body: some View {
-        Group {
-            if viewModel.chats.isEmpty {
-                VStack {
-                    headerView
-                    
-                    Spacer()
-                    Image(systemName: "binoculars")
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(.tint)
-                    Text("会話がありません")
-                        .font(.title)
-                    Spacer()
-                }
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        ForEach(viewModel.chats) { chat in
-                            ChatList(chat: chat)
-                        }
+        NavigationStack {
+            Group {
+                if viewModel.chats.isEmpty {
+                    VStack {
+                        headerView
+                        
+                        Spacer()
+                        Image(systemName: "binoculars")
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(.tint)
+                        Text("会話がありません")
+                            .font(.title)
+                        Spacer()
                     }
-                    .padding()
-                }
-                .scrollEdgeEffectStyle(.soft, for: .top)
-                .safeAreaBar(edge: .top) {
-                    headerView
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(viewModel.chats) { chat in
+                                ChatList(chat: chat)
+                            }
+                        }
+                        .padding()
+                    }
+                    .scrollEdgeEffectStyle(.soft, for: .top)
+                    .safeAreaBar(edge: .top) {
+                        headerView
+                    }
                 }
             }
         }
@@ -52,6 +55,14 @@ struct ContactView: View {
                 .padding()
             
             Spacer()
+            
+            Button{
+                vm.signOut()
+            }label: {
+                Circle()
+                    .frame(width: 45, height: 45).foregroundColor(.red)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal)
         .padding(.top, 8)
@@ -67,32 +78,30 @@ struct ChatList: View {
     }
     
     var body: some View {
-        HStack {
-            if isOwner {
-                Color.red
-                    .frame(width: 100, height: 165)
-            }else{
-                Color.blue
-                    .frame(width: 100, height: 165)
+        NavigationLink(destination: ChatView(chat: chat)){
+            HStack {
+                if isOwner {
+                    Color.red
+                        .frame(width: 70, height: 70)
+                        .clipShape(.circle)
+                        .padding(.trailing, 0)
+                }else{
+                    Color.blue
+                        .frame(width: 70, height: 70)
+                        .clipShape(.circle)
+                        .padding(.trailing, 0)
+                }
+                VStack{
+                    Text(chat.itemName)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .padding()
+                    Spacer()
+                }
+                Spacer()
             }
-            
-            Text(chat.itemName)
-                .font(.headline)
-                .lineLimit(1)
-                .padding()
-            
-            Spacer()
         }
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.background)
-                .shadow(color: Color(red: .random(in: 0...1), green: .random(in: 0...1), blue: .random(in: 0...1)), radius: 4, x: 2, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(.black, lineWidth: 1)
-        )
+        .buttonStyle(.plain)
     }
 }
 
