@@ -20,7 +20,7 @@ struct ContentView: View {
                 Image(systemName: "qrcode.viewfinder")
                 Text("読み取り")
             }.tag(2)
-            ContactView().tabItem{
+            ContactView(vm: vm).tabItem{
                 Image(systemName: "bubble.right")
                 Text("連絡")
             }.tag(3)

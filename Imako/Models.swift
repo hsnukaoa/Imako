@@ -56,13 +56,15 @@ struct Item: Codable, Identifiable, Hashable{
     var lostNumber: Int?
     var chatIDs: [String]?
     
-    init(name: String, ownerID: String, imageURL: String, canCall: Bool, lostNumber: Int){
-        self.name = name
-        self.ownerID = ownerID
-        self.imageURL = imageURL
-        self.canCall = canCall
-        self.createdAt = Date()
-        self.lostNumber = lostNumber
-        self.chatIDs = []
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case ownerID
+        case imageURL
+        case canCall
+        case createdAt
+        case lostNumber
+        
+        case chatIDs = "chats"
     }
 }

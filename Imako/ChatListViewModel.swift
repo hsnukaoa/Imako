@@ -40,4 +40,36 @@ class ChatListViewModel: ObservableObject {
             print("ユーザーデータ、またはチャットの取得に失敗しました: \(error.localizedDescription)")
         }
     }
+    
+    func fetchChatsFromID(_ chatID: String) async -> Chats? {
+        do {
+            let chatDoc = try await db.collection("chats").document(chatID).getDocument()
+            if let chat = try? chatDoc.data(as: Chats.self) {
+                return chat
+            } else {
+                return nil
+            }
+        } catch {
+            print("チャットの取得に失敗しました: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func fetchChatsFromItem(_ item: Item) async -> [Chats]? {
+        var chats : [Chats] = []
+        guard let chatIDs = item.chatIDs else { return [] }
+        for chatID in chatIDs {
+            do {
+                let chatDoc = try await db.collection("chats").document(chatID).getDocument()
+                if let chat = try? chatDoc.data(as: Chats.self) {
+                    chats.append(chat)
+                }
+            } catch {
+                continue
+            }
+        }
+
+        return chats
+    }
 }
+
