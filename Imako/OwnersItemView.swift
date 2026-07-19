@@ -11,6 +11,9 @@ struct OwnersItemView: View {
     @State var item: Item
     private let dbservice = DatabaseService()
     @State var ShowQRSheet: Bool = false
+    @StateObject var viewModel = ChatListViewModel()
+    @State private var chats: [Chats] = []
+    @State private var isLoadingChats = false
     
     var body: some View {
         ScrollView{
@@ -41,6 +44,38 @@ struct OwnersItemView: View {
                 }
                 .padding()
                 
+                HStack{
+                    Text("関連チャット")
+                        .font(.title.bold())
+                        .padding()
+                    
+                    Spacer()
+                }
+                .padding()
+                
+                LazyVStack{
+                    ForEach(chats) { chat in
+                        NavigationLink(destination: ChatView(chat: chat)){
+                            HStack {
+                                Color.blue
+                                    .frame(width: 70, height: 70)
+                                    .clipShape(.circle)
+                                    .padding(.trailing, 0)
+                                VStack{
+                                    Text(chat.itemName)
+                                        .font(.headline)
+                                        .lineLimit(1)
+                                        .padding()
+                                    Spacer()
+                                }
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding()
+                
                 Spacer()
             }
             .ignoresSafeArea(edges: .top)
@@ -52,6 +87,9 @@ struct OwnersItemView: View {
         .safeAreaBar(edge: .bottom) {
             footer
                 .padding()
+        }
+        .task {
+            await loadChats()
         }
         .toolbar{
             ToolbarItem(placement:.topBarTrailing){
@@ -110,6 +148,18 @@ struct OwnersItemView: View {
             .padding()
             .glassEffect(.regular.interactive(), in: .circle)
             .buttonStyle(.plain)
+        }
+    }
+    
+    @MainActor
+    private func loadChats() async {
+        guard !isLoadingChats else { return }
+        isLoadingChats = true
+        defer { isLoadingChats = false }
+        if let fetched: [Chats] = await viewModel.fetchChatsFromItem(item) {
+            chats = fetched
+        } else {
+            chats = []
         }
     }
 }

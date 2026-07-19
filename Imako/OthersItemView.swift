@@ -14,6 +14,10 @@ struct OthersItemView: View {
     @State var ShowQRSheet: Bool = false
     @StateObject private var viewModel = ChatCreateViewModel()
     @State private var sentTo: String = ""
+    @StateObject private var vm = ChatListViewModel()
+    @State var newChatID: String = ""
+    @State private var isPresentingChat = false
+    @State private var loadedChat: Chats? = nil
     
     var body: some View {
         var currentUserID: String{
@@ -62,8 +66,16 @@ struct OthersItemView: View {
                                 }
                             }
                             
+                            newChatID = docID
+                            // Preload chat asynchronously before navigating
+                            Task {
+                                loadedChat = await vm.fetchChatsFromID(newChatID)
+                                isPresentingChat = true
+                            }
                         }
                     }
+                    
+                    
                 }label: {
                     Text("チャットを開始する")
                         .padding()
@@ -82,6 +94,13 @@ struct OthersItemView: View {
             header
         }
         .toolbar(.hidden, for: .tabBar)
+        .navigationDestination(isPresented: $isPresentingChat) {
+            if let chat = loadedChat {
+                ChatView(chat: chat)
+            } else {
+                ProgressView()
+            }
+        }
     }
     
     private var header: some View {

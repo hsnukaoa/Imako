@@ -16,6 +16,7 @@ class MessageListViewModel: ObservableObject{
     
     func fetchMessages(chatID: String){
         db.collection("chats").document(chatID).collection("messages")
+            .order(by: "createdAt", descending: false)
             .addSnapshotListener { querySnapshot, error in
                 guard let documents = querySnapshot?.documents else { return }
                 

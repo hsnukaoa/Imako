@@ -17,34 +17,53 @@ struct ChatView: View {
     
     
     var body: some View {
-        NavigationStack{
-            VStack{
-                if vm.messages.isEmpty{
-                    Spacer()
-                }else {
+        VStack{
+            if vm.messages.isEmpty{
+                Spacer()
+                Text("まだメッセージはありません")
+                Spacer()
+            }else {
+                ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(spacing: 16) {
+                        LazyVStack{
                             ForEach(vm.messages) { message in
-                                ChatList(chat: chat)
+                                MessageList(message: message)
+                                    .id(message.id)
                             }
                         }
                         .padding()
                     }
+                    .onChange(of: vm.messages.count) { oldValue, newValue in
+                        if let lastMessage = vm.messages.last {
+                            withAnimation {
+                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                            }
+                        }
+                    }
+                    // 画面が表示されたときに一番下へスクロール
+                    .onAppear {
+                        if let lastMessage = vm.messages.last {
+                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
+                    }
                 }
-                
-                footer
             }
-            .toolbar(.hidden, for: .tabBar)
-            .toolbar{
-                ToolbarItem(placement: .title) {
-                    Text(chat.itemName)
-                        .font(.headline)
-                }
+            
+            footer
+        }
+        .toolbar(.hidden, for: .tabBar)
+        .toolbar{
+            ToolbarItem(placement: .title) {
+                Text(chat.itemName)
+                    .font(.headline)
             }
         }
         .contentShape(Rectangle())
         .onTapGesture {
             isFocused = false
+        }
+        .onAppear{
+            vm.fetchMessages(chatID: chat.id!)
         }
     }
     
@@ -100,19 +119,21 @@ struct MessageList: View {
             if isSender {
                 HStack{
                     Spacer()
-                    
                     Text(message.content)
+                        .padding()
+                        .foregroundStyle(.white)
                         .background(Color.green)
-                        .frame(width: 150)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             }else{
-                Text(message.content)
-                    .background(Color.blue)
-                    .frame(width: 150)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                
-                Spacer()
+                HStack{
+                    Text(message.content)
+                        .padding()
+                        .foregroundStyle(.white)
+                        .background(Color.blue)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    Spacer()
+                }
             }
         }
         
@@ -125,3 +146,4 @@ extension String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
+
