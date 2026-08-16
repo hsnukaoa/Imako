@@ -22,14 +22,21 @@ class ChatListViewModel: ObservableObject {
             let document = try await docRef.getDocument()
             let chatIDs = document.data()?["chats"] as? [String] ?? []
             
-            var fetchedChats: [Chats] = []
-            
-            for chatID in chatIDs {
-                let chatDoc = try await db.collection("chats").document(chatID).getDocument()
-                
-                if let chat = try? chatDoc.data(as: Chats.self) {
-                    fetchedChats.append(chat)
+            let fetchedChats = await withTaskGroup(of: DocumentSnapshot?.self) { group in
+                for chatID in chatIDs {
+                    group.addTask {
+                        return try? await self.db.collection("chats").document(chatID).getDocument()
+                    }
                 }
+                
+                var results: [Chats] = []
+                
+                for await doc in group {
+                    if let doc = doc, let chat = try? doc.data(as: Chats.self) {
+                        results.append(chat)
+                    }
+                }
+                return results
             }
             
             DispatchQueue.main.async {
@@ -44,11 +51,7 @@ class ChatListViewModel: ObservableObject {
     func fetchChatsFromID(_ chatID: String) async -> Chats? {
         do {
             let chatDoc = try await db.collection("chats").document(chatID).getDocument()
-            if let chat = try? chatDoc.data(as: Chats.self) {
-                return chat
-            } else {
-                return nil
-            }
+            return try? chatDoc.data(as: Chats.self)
         } catch {
             print("チャットの取得に失敗しました: \(error.localizedDescription)")
             return nil
@@ -56,20 +59,24 @@ class ChatListViewModel: ObservableObject {
     }
     
     func fetchChatsFromItem(_ item: Item) async -> [Chats]? {
-        var chats : [Chats] = []
         guard let chatIDs = item.chatIDs else { return [] }
-        for chatID in chatIDs {
-            do {
-                let chatDoc = try await db.collection("chats").document(chatID).getDocument()
-                if let chat = try? chatDoc.data(as: Chats.self) {
-                    chats.append(chat)
+        
+        let fetchedChats = await withTaskGroup(of: DocumentSnapshot?.self) { group in
+            for chatID in chatIDs {
+                group.addTask {
+                    return try? await self.db.collection("chats").document(chatID).getDocument()
                 }
-            } catch {
-                continue
             }
+            
+            var results: [Chats] = []
+            for await doc in group {
+                if let doc = doc, let chat = try? doc.data(as: Chats.self) {
+                    results.append(chat)
+                }
+            }
+            return results
         }
 
-        return chats
+        return fetchedChats
     }
 }
-

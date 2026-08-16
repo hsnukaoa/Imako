@@ -24,12 +24,12 @@ struct Chats : Codable, Identifiable {
     @DocumentID var id: String?
     var sentBy: String
     var sentTo: String
-    var itemName: String
+    var item: Item
     
-    init(sentBy: String, sentTo: String, itemName: String){
+    init(sentBy: String, sentTo: String, item: Item){
         self.sentBy = sentBy
         self.sentTo = sentTo
-        self.itemName = itemName
+        self.item = item
     }
 }
 

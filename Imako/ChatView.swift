@@ -54,7 +54,7 @@ struct ChatView: View {
         .toolbar(.hidden, for: .tabBar)
         .toolbar{
             ToolbarItem(placement: .title) {
-                Text(chat.itemName)
+                Text(chat.item.name)
                     .font(.headline)
             }
         }

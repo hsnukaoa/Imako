@@ -62,7 +62,7 @@ struct OwnersItemView: View {
                                     .clipShape(.circle)
                                     .padding(.trailing, 0)
                                 VStack{
-                                    Text(chat.itemName)
+                                    Text(chat.item.name)
                                         .font(.headline)
                                         .lineLimit(1)
                                         .padding()
