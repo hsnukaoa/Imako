@@ -19,6 +19,37 @@ struct OthersItemView: View {
     @State private var isPresentingChat = false
     @State private var loadedChat: Chats? = nil
     
+    private func searchAndCreateChat(currentUserID: String, sentToUserID: String) {
+        Task {
+            let result = await viewModel.searchSameChat(sentBy: currentUserID, sentTo: sentToUserID, item: item)
+            if result.exists == false {
+                viewModel.createChat(sentBy: currentUserID, sentTo: sentToUserID, item: item) { bool, docID in
+                    if let docID = docID {
+                        if let itemID = item.id {
+                            viewModel.UpdateItemArray(chatID: docID, itemID: itemID) { success in
+                            }
+                            viewModel.UpdateUserArray(chatID: docID, finderID: currentUserID, dropperID: sentToUserID){ success in
+                            }
+                        }
+                        
+                        let newChatID = docID
+                        Task {
+                            loadedChat = await vm.fetchChatsFromID(newChatID)
+                            isPresentingChat = true
+                        }
+                    }
+                }
+            } else {
+                let chat = result.chat
+                
+                Task{
+                    loadedChat = chat
+                    isPresentingChat = true
+                }
+            }
+        }
+    }
+    
     var body: some View {
         var currentUserID: String{
             Auth.auth().currentUser!.uid
@@ -57,25 +88,7 @@ struct OthersItemView: View {
                 .padding()
                 
                 Button{
-                    viewModel.createChat(sentBy: currentUserID, sentTo: sentToUserID, item: item) {bool, docID in
-                        if let docID = docID {
-                            if let itemID = item.id {
-                                viewModel.UpdateItemArray(chatID: docID, itemID: itemID) { success in
-                                }
-                                viewModel.UpdateUserArray(chatID: docID, finderID: currentUserID, dropperID: sentToUserID){ success in
-                                }
-                            }
-                            
-                            newChatID = docID
-                            // Preload chat asynchronously before navigating
-                            Task {
-                                loadedChat = await vm.fetchChatsFromID(newChatID)
-                                isPresentingChat = true
-                            }
-                        }
-                    }
-                    
-                    
+                    searchAndCreateChat(currentUserID: currentUserID, sentToUserID: sentToUserID)
                 }label: {
                     Text("チャットを開始する")
                         .padding()

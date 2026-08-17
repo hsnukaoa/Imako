@@ -151,6 +151,43 @@ class ChatCreateViewModel: ObservableObject {
         Auth.auth().currentUser?.uid
     }
     
+    func searchSameChat(sentBy: String, sentTo: String, item: Item) async -> (exists: Bool, chat: Chats?) {
+        guard currentUserID != nil else {
+            print("エラー: ログインしていません")
+            return (false, nil)
+        }
+        
+        guard let itemID = item.id else {
+            print("エラー: item.idが存在しません")
+            return (false, nil)
+        }
+        
+        let db = Firestore.firestore()
+        
+        do {
+            let snapshot = try await db.collection("chats")
+                .whereField("sentBy", isEqualTo: sentBy)
+                .whereField("sentTo", isEqualTo: sentTo)
+                .whereField("itemID", isEqualTo: itemID)
+                .limit(to: 1)
+                .getDocuments()
+            
+            if let document = snapshot.documents.first {
+                if let chat = try? document.data(as: Chats.self) {
+                    return (true, chat)
+                } else {
+                    print("エラー: Chats型へのデコードに失敗しました")
+                    return (false, nil)
+                }
+            } else {
+                return (false, nil)
+            }
+        } catch {
+            print("エラー: 既存チャットの検索に失敗しました: \(error.localizedDescription)")
+            return (false, nil)
+        }
+    }
+    
     func createChat(sentBy: String, sentTo: String, item: Item, completion: @escaping (Bool, String?) -> Void) {
         guard currentUserID != nil else {
             print("エラー: ログインしていません")

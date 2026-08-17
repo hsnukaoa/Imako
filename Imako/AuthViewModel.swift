@@ -9,13 +9,25 @@ import FirebaseAuth
 import SwiftUI
 import Combine
 
-class AuthViewModel: ObservableObject{
+@MainActor
+class AuthViewModel: ObservableObject {
     @Published var isLoggedIn = false
     @Published var errorMessage: String?
-    @StateObject private var viewModel = UserRegistrationViewModel()
+    private var viewModel = UserRegistrationViewModel()
+    private var handle: AuthStateDidChangeListenerHandle?
     
-    init(){
-        isLoggedIn = Auth.auth().currentUser != nil
+    init() {
+        handle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            Task { @MainActor in
+                self?.isLoggedIn = (user != nil)
+            }
+        }
+    }
+    
+    deinit {
+        if let handle = handle {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
     }
     
     func signUp(email: String, password: String) {
@@ -24,11 +36,8 @@ class AuthViewModel: ObservableObject{
                 if let error = error {
                     self.errorMessage = error.localizedDescription
                     return
-                } else {
-                    self.isLoggedIn = true
-                    self.viewModel.registerUser{ success in
-                    }
                 }
+                self.viewModel.registerUser { success in }
             }
         }
     }
@@ -40,7 +49,6 @@ class AuthViewModel: ObservableObject{
                     self.errorMessage = error.localizedDescription
                     return
                 }
-                self.isLoggedIn = true
             }
         }
     }
@@ -48,9 +56,19 @@ class AuthViewModel: ObservableObject{
     func signOut() {
         do {
             try Auth.auth().signOut()
-            self.isLoggedIn = false
         } catch {
             self.errorMessage = error.localizedDescription
+        }
+    }
+    
+    func deleteUser(){
+        guard let user = Auth.auth().currentUser else { return }
+        user.delete { [weak self] error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self?.errorMessage = error.localizedDescription
+                }
+            }
         }
     }
 }

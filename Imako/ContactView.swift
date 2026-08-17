@@ -87,14 +87,13 @@ struct ContactView: View {
             
             Spacer()
             
-            Button {
-                vm.signOut()
-            } label: {
-                Circle()
-                    .frame(width: 45, height: 45)
-                    .foregroundColor(.red)
+            NavigationLink(destination: UserView()){
+                Image(systemName: "person.fill")
+                    .frame(width:47, height: 47)
+                    .clipShape(Circle())
             }
             .buttonStyle(.plain)
+            .glassEffect(.regular.interactive(), in: .circle)
         }
         .padding(.horizontal)
         .padding(.top, 8)
@@ -109,9 +108,15 @@ struct ChatList: View {
         return chat.sentTo == uid
     }
     
+    private var fixedItem: Item {
+        var item = chat.item
+        item.id = chat.itemID
+        return item
+    }
+    
     var body: some View {
         HStack {
-            NavigationLink(destination: BranchDetailView(item: chat.item)) {
+            NavigationLink(destination: BranchDetailView(item: fixedItem)) {
                 ZStack {
                     Color(isOwner ? .red : .blue)
                         .frame(width: 70, height: 70)
@@ -130,7 +135,7 @@ struct ChatList: View {
                                 ProgressView()
                             }
                         }
-                        .frame(width: 60, height: 60)
+                        .frame(width: 65, height: 65)
                         .clipShape(Circle())
                     }
                 }
