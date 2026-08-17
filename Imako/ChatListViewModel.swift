@@ -12,6 +12,8 @@ import FirebaseAuth
 
 class ChatListViewModel: ObservableObject {
     @Published var chats: [Chats] = []
+    @Published var findItemChats: [Chats] = []
+    @Published var lostItemChats: [Chats] = []
     private let db = Firestore.firestore()
     
     func fetchChats() async {
@@ -39,8 +41,13 @@ class ChatListViewModel: ObservableObject {
                 return results
             }
             
+            let fetchedFindItemChats = fetchedChats.filter { $0.sentBy == currentUserID }
+            let fetchedLostItemChats = fetchedChats.filter { $0.sentBy != currentUserID }
+            
             DispatchQueue.main.async {
                 self.chats = fetchedChats
+                self.findItemChats = fetchedFindItemChats
+                self.lostItemChats = fetchedLostItemChats
             }
             
         } catch {

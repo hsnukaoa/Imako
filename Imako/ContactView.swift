@@ -8,9 +8,29 @@
 import SwiftUI
 import FirebaseAuth
 
+enum ChatFilterType: String, CaseIterable, Identifiable {
+    case all = "全て"
+    case find = "拾った"
+    case lost = "なくした"
+    
+    var id: String { self.rawValue }
+}
+
 struct ContactView: View {
-    @ObservedObject private var viewModel = ChatListViewModel()
+    @StateObject private var viewModel = ChatListViewModel()
     @ObservedObject var vm: AuthViewModel
+    @State private var selection: ChatFilterType = .all
+    
+    private var selectedChats: [Chats] {
+        switch selection {
+        case .all:
+            return viewModel.chats
+        case .find:
+            return viewModel.findItemChats
+        case .lost:
+            return viewModel.lostItemChats
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -28,17 +48,28 @@ struct ContactView: View {
                         Spacer()
                     }
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(viewModel.chats) { chat in
-                                ChatList(chat: chat)
-                            }
+                    VStack(spacing: 0) {
+                        Picker("フィルター", selection: $selection) {
+                            Text("全て").tag(ChatFilterType.all)
+                            Text("拾った").tag(ChatFilterType.find)
+                            Text("なくした").tag(ChatFilterType.lost)
                         }
+                        .pickerStyle(.segmented)
                         .padding()
+                        
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(selectedChats) { chat in
+                                    ChatList(chat: chat)
+                                }
+                            }
+                            .padding()
+                        }
+                        .scrollEdgeEffectStyle(.soft, for: .top)
                     }
-                    .scrollEdgeEffectStyle(.soft, for: .top)
-                    .safeAreaBar(edge: .top) {
+                    .safeAreaInset(edge: .top) {
                         headerView
+                            .background(Color(uiColor: .systemBackground))
                     }
                 }
             }
@@ -56,11 +87,12 @@ struct ContactView: View {
             
             Spacer()
             
-            Button{
+            Button {
                 vm.signOut()
-            }label: {
+            } label: {
                 Circle()
-                    .frame(width: 45, height: 45).foregroundColor(.red)
+                    .frame(width: 45, height: 45)
+                    .foregroundColor(.red)
             }
             .buttonStyle(.plain)
         }
@@ -78,30 +110,47 @@ struct ChatList: View {
     }
     
     var body: some View {
-        NavigationLink(destination: ChatView(chat: chat)){
-            HStack {
-                if isOwner {
-                    Color.red
+        HStack {
+            NavigationLink(destination: BranchDetailView(item: chat.item)) {
+                ZStack {
+                    Color(isOwner ? .red : .blue)
                         .frame(width: 70, height: 70)
-                        .clipShape(.circle)
-                        .padding(.trailing, 0)
-                }else{
-                    Color.blue
-                        .frame(width: 70, height: 70)
-                        .clipShape(.circle)
-                        .padding(.trailing, 0)
+                        .clipShape(Circle())
+                    
+                    if let url = URL(string: chat.item.imageURL) {
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image {
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } else if phase.error != nil {
+                                Image(systemName: "photo.badge.exclamationmark")
+                                    .foregroundStyle(.gray)
+                            } else {
+                                ProgressView()
+                            }
+                        }
+                        .frame(width: 60, height: 60)
+                        .clipShape(Circle())
+                    }
                 }
-                VStack{
-                    Text(chat.item.name)
-                        .font(.headline)
-                        .lineLimit(1)
-                        .padding()
+            }
+            .buttonStyle(.plain)
+            
+            NavigationLink(destination: ChatView(chat: chat)) {
+                HStack {
+                    VStack {
+                        Text(chat.item.name)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .padding(.top)
+                        Spacer()
+                    }
                     Spacer()
                 }
-                Spacer()
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
     }
 }
-
