@@ -57,6 +57,7 @@ struct Item: Codable, Identifiable, Hashable{
     var createdAt: Date?
     var lostNumber: Int?
     var chatIDs: [String]?
+    var imagePublicId: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -66,7 +67,23 @@ struct Item: Codable, Identifiable, Hashable{
         case canCall
         case createdAt
         case lostNumber
+        case imagePublicId
         
         case chatIDs = "chats"
+    }
+    
+    init(name: String, ownerID : String, imageURL: String, canCall: Bool, lostNumber: Int?) {
+        self.name = name
+        self.ownerID = ownerID
+        self.imageURL = imageURL
+        self.canCall = canCall
+        self.createdAt = Date()
+        if let url = URL(string: imageURL) {
+            let publicId = url.deletingPathExtension().lastPathComponent
+            self.imagePublicId = publicId
+        } else {
+            self.imagePublicId = nil
+        }
+        self.lostNumber = lostNumber
     }
 }

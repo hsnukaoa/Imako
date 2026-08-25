@@ -1,0 +1,10 @@
+# 機密情報（APIキーなど）
+.env
+.env.*
+
+# Node.js 依存ファイル
+node_modules/
+
+# ログファイル
+npm-debug.log*
+firebase-debug.log*

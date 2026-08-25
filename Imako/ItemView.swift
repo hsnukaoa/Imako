@@ -10,6 +10,7 @@ import SwiftUI
 struct ItemView: View {
     @State private var showSheet = false
     @StateObject private var viewModel = ItemListViewModel()
+    @StateObject private var itemDeleteViewModel = ItemDeleteViewModel()
     
     let columns = [GridItem(.adaptive(minimum: 150), spacing: 16)]
     
@@ -28,14 +29,24 @@ struct ItemView: View {
                     Spacer()
                 }
             } else {
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        ForEach(viewModel.items) { item in
-                            ItemCard(item: item)
-                        }
+                List{
+                    ForEach(viewModel.items) { item in
+                        ItemCard(item: item)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false){
+                                Button {
+                                    if let id = item.id {
+                                        Task {
+                                            await itemDeleteViewModel.deleteItem(documentID: id)
+                                        }
+                                    }
+                                } label: {
+                                    Text("削除")
+                                }
+                                .tint(.red)
+                            }
                     }
-                    .padding()
                 }
+                .listStyle(.plain)
                 .scrollEdgeEffectStyle(.soft, for: .top)
                 .safeAreaBar(edge: .top) {
                     headerView

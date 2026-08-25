@@ -278,3 +278,24 @@ class SendMessageViewModel: ObservableObject {
         }
     }
 }
+
+//持ち物を削除する関数（画像削除はバックグラウンドでFirebaseFunctionsが実行）
+class ItemDeleteViewModel: ObservableObject {
+    func deleteItem(documentID: String) async {
+        let db = Firestore.firestore()
+        do {
+            try await db.collection("items").document(documentID).delete()
+        } catch {
+            print("ドキュメントの削除に失敗しました: \(error)")
+        }
+    }
+}
+
+//Chatを削除する関数（サブコレクションの削除、user配列の組み直しはFirebaseFunctionsが実行）
+class ChatsDeleteViewModel: ObservableObject {
+    func deleteChat(chatId: String) async throws {
+        let db = Firestore.firestore()
+        let chatRef = db.collection("chats").document(chatId)
+        try await chatRef.delete()
+    }
+}

@@ -20,6 +20,7 @@ struct ContactView: View {
     @StateObject private var viewModel = ChatListViewModel()
     @ObservedObject var vm: AuthViewModel
     @State private var selection: ChatFilterType = .all
+    @StateObject private var chatDeletevm = ChatsDeleteViewModel()
     
     private var selectedChats: [Chats] {
         switch selection {
@@ -58,11 +59,22 @@ struct ContactView: View {
                         .padding()
                         
                         ScrollView {
-                            LazyVStack(spacing: 16) {
+                            List {
                                 ForEach(selectedChats) { chat in
                                     ChatList(chat: chat)
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: false){
+                                            Button {
+                                                Task {
+                                                    try await chatDeletevm.deleteChat(chatId: chat.id!)
+                                                }
+                                            } label: {
+                                                Text("削除")
+                                            }
+                                            .tint(.red)
+                                        }
                                 }
                             }
+                            .listStyle(.plain)
                             .padding()
                         }
                         .scrollEdgeEffectStyle(.soft, for: .top)

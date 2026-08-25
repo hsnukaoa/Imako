@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6786D1EB303A6F14001BF682 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 6786D1EA303A6F14001BF682 /* FirebaseFunctions */; };
 		A6F03DDD2F9CF29C00809696 /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = A6F03DDC2F9CF29C00809696 /* Cloudinary */; };
 		A6F03DE02F9CF2BA00809696 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = A6F03DDF2F9CF2BA00809696 /* DesignSystem */; };
 		A6F03DE32F9CF30600809696 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A6F03DE22F9CF30600809696 /* FirebaseAnalytics */; };
@@ -34,6 +35,7 @@
 				A6F03DDD2F9CF29C00809696 /* Cloudinary in Frameworks */,
 				A6F03DE02F9CF2BA00809696 /* DesignSystem in Frameworks */,
 				A6F03DE32F9CF30600809696 /* FirebaseAnalytics in Frameworks */,
+				6786D1EB303A6F14001BF682 /* FirebaseFunctions in Frameworks */,
 				A6F03DE72F9CF30600809696 /* FirebaseFirestore in Frameworks */,
 				A6F03DE52F9CF30600809696 /* FirebaseAuth in Frameworks */,
 			);
@@ -46,6 +48,7 @@
 			isa = PBXGroup;
 			children = (
 				677BB41B2F7C96C700ABC72C /* Imako */,
+				6786D1E9303A6F14001BF682 /* Frameworks */,
 				677BB41A2F7C96C700ABC72C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +59,13 @@
 				677BB4192F7C96C700ABC72C /* Imako.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6786D1E9303A6F14001BF682 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,6 +93,7 @@
 				A6F03DE22F9CF30600809696 /* FirebaseAnalytics */,
 				A6F03DE42F9CF30600809696 /* FirebaseAuth */,
 				A6F03DE62F9CF30600809696 /* FirebaseFirestore */,
+				6786D1EA303A6F14001BF682 /* FirebaseFunctions */,
 			);
 			productName = Imako;
 			productReference = 677BB4192F7C96C700ABC72C /* Imako.app */;
@@ -399,6 +410,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		6786D1EA303A6F14001BF682 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6F03DE12F9CF30600809696 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
 		A6F03DDC2F9CF29C00809696 /* Cloudinary */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A6F03DDB2F9CF29C00809696 /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
