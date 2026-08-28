@@ -10,49 +10,95 @@ import Combine
 import FirebaseFirestore
 import FirebaseAuth
 
+@MainActor
 class ChatListViewModel: ObservableObject {
     @Published var chats: [Chats] = []
     @Published var findItemChats: [Chats] = []
     @Published var lostItemChats: [Chats] = []
+    
     private let db = Firestore.firestore()
     
-    func fetchChats() async {
+    private var userListener: ListenerRegistration?
+    private var chatListeners: [String: ListenerRegistration] = [:]
+    
+    private var currentChatsMap: [String: Chats] = [:]
+    
+    func startListeningChats() {
         guard let currentUserID = Auth.auth().currentUser?.uid else { return }
         let docRef = db.collection("users").document(currentUserID)
         
-        do {
-            let document = try await docRef.getDocument()
+        userListener = docRef.addSnapshotListener { [weak self] documentSnapshot, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("ユーザーデータの監視に失敗しました: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let document = documentSnapshot else { return }
             let chatIDs = document.data()?["chats"] as? [String] ?? []
             
-            let fetchedChats = await withTaskGroup(of: DocumentSnapshot?.self) { group in
-                for chatID in chatIDs {
-                    group.addTask {
-                        return try? await self.db.collection("chats").document(chatID).getDocument()
-                    }
-                }
-                
-                var results: [Chats] = []
-                
-                for await doc in group {
-                    if let doc = doc, let chat = try? doc.data(as: Chats.self) {
-                        results.append(chat)
-                    }
-                }
-                return results
-            }
-            
-            let fetchedFindItemChats = fetchedChats.filter { $0.sentBy == currentUserID }
-            let fetchedLostItemChats = fetchedChats.filter { $0.sentBy != currentUserID }
-            
-            DispatchQueue.main.async {
-                self.chats = fetchedChats
-                self.findItemChats = fetchedFindItemChats
-                self.lostItemChats = fetchedLostItemChats
-            }
-            
-        } catch {
-            print("ユーザーデータ、またはチャットの取得に失敗しました: \(error.localizedDescription)")
+            self.updateChatListeners(chatIDs: chatIDs, currentUserID: currentUserID)
         }
+    }
+    
+    private func updateChatListeners(chatIDs: [String], currentUserID: String) {
+        for (id, listener) in chatListeners {
+            if !chatIDs.contains(id) {
+                listener.remove()
+                chatListeners.removeValue(forKey: id)
+                currentChatsMap.removeValue(forKey: id)
+            }
+        }
+        
+        for chatID in chatIDs {
+            if chatListeners[chatID] == nil {
+                let listener = db.collection("chats").document(chatID).addSnapshotListener { [weak self] documentSnapshot, error in
+                    guard let self = self else { return }
+                    
+                    if let error = error {
+                        print("チャット(\(chatID))の監視エラー: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    guard let doc = documentSnapshot, doc.exists else { return }
+                    
+                    do {
+                        let chat = try doc.data(as: Chats.self)
+                        self.currentChatsMap[chatID] = chat
+                        self.updatePublishedProperties(currentUserID: currentUserID)
+                    } catch {
+                        print("チャットのデコードに失敗しました: \(error.localizedDescription)")
+                    }
+                }
+                chatListeners[chatID] = listener
+            }
+        }
+        
+        updatePublishedProperties(currentUserID: currentUserID)
+    }
+    
+    // MARK: - UIプロパティの更新
+    private func updatePublishedProperties(currentUserID: String) {
+        let allChats = Array(self.currentChatsMap.values)
+        // 例: 日付順にソートする場合（ChatsモデルにcreatedAt等がある場合）
+        // let sortedChats = allChats.sorted { $0.createdAt > $1.createdAt }
+        
+        self.chats = allChats
+        self.findItemChats = allChats.filter { $0.sentBy == currentUserID }
+        self.lostItemChats = allChats.filter { $0.sentBy != currentUserID }
+    }
+    
+    // MARK: - 監視の停止（画面遷移時やログアウト時などに呼ぶ）
+    func stopListening() {
+        userListener?.remove()
+        userListener = nil
+        
+        for (_, listener) in chatListeners {
+            listener.remove()
+        }
+        chatListeners.removeAll()
+        currentChatsMap.removeAll()
     }
     
     func fetchChatsFromID(_ chatID: String) async -> Chats? {
@@ -83,7 +129,6 @@ class ChatListViewModel: ObservableObject {
             }
             return results
         }
-
         return fetchedChats
     }
 }

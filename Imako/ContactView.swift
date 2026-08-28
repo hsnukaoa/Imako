@@ -5,6 +5,11 @@
 //  Created by 宇田川航太 on 2026/04/01.
 //
 
+//
+//  ContactView.swift
+//  Imako
+//
+
 import SwiftUI
 import FirebaseAuth
 
@@ -37,17 +42,7 @@ struct ContactView: View {
         NavigationStack {
             Group {
                 if viewModel.chats.isEmpty {
-                    VStack {
-                        headerView
-                        
-                        Spacer()
-                        Image(systemName: "binoculars")
-                            .font(.largeTitle.bold())
-                            .foregroundStyle(.tint)
-                        Text("会話がありません")
-                            .font(.title)
-                        Spacer()
-                    }
+                    emptyStateView
                 } else {
                     VStack(spacing: 0) {
                         Picker("フィルター", selection: $selection) {
@@ -58,36 +53,38 @@ struct ContactView: View {
                         .pickerStyle(.segmented)
                         .padding()
                         
-                        ScrollView {
-                            List {
-                                ForEach(selectedChats) { chat in
-                                    ChatList(chat: chat)
-                                        .swipeActions(edge: .trailing, allowsFullSwipe: false){
-                                            Button {
+                        List {
+                            ForEach(selectedChats) { chat in
+                                ChatList(chat: chat)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                        Button {
+                                            if let chatId = chat.id {
                                                 Task {
-                                                    try await chatDeletevm.deleteChat(chatId: chat.id!)
+                                                    //TODO: チャットを消した時に、item > chatIDsの中身も削除するようにする
+                                                    try await chatDeletevm.deleteChat(chatId: chatId)
                                                 }
-                                            } label: {
-                                                Text("削除")
                                             }
-                                            .tint(.red)
+                                        } label: {
+                                            Text("削除")
                                         }
-                                }
+                                        .tint(.red)
+                                    }
                             }
-                            .listStyle(.plain)
-                            .padding()
                         }
-                        .scrollEdgeEffectStyle(.soft, for: .top)
-                    }
-                    .safeAreaInset(edge: .top) {
-                        headerView
-                            .background(Color(uiColor: .systemBackground))
+                        .listStyle(.plain)
                     }
                 }
             }
+            .safeAreaInset(edge: .top) {
+                headerView
+                    .background(Color(uiColor: .systemBackground))
+            }
         }
-        .task {
-            await viewModel.fetchChats()
+        .onAppear {
+            viewModel.startListeningChats()
+        }
+        .onDisappear {
+            viewModel.stopListening()
         }
     }
     
@@ -99,9 +96,9 @@ struct ContactView: View {
             
             Spacer()
             
-            NavigationLink(destination: UserView()){
+            NavigationLink(destination: UserView()) {
                 Image(systemName: "person.fill")
-                    .frame(width:47, height: 47)
+                    .frame(width: 47, height: 47)
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -109,6 +106,19 @@ struct ContactView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
+    }
+    
+    private var emptyStateView: some View {
+        VStack {
+            Spacer()
+            Image(systemName: "binoculars")
+                .font(.largeTitle.bold())
+                .foregroundStyle(.tint)
+            Text("会話がありません")
+                .font(.title)
+                .padding(.top, 8)
+            Spacer()
+        }
     }
 }
 
