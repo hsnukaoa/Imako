@@ -60,6 +60,7 @@ struct ContactView: View {
                                         Button {
                                             if let chatId = chat.id {
                                                 Task {
+                                                    //TODO: チャットを消す時に、Firebase側の処理に関わらずボタンを押した直後にそのチャットは非表示にする
                                                     //TODO: チャットを消した時に、item > chatIDsの中身も削除するようにする
                                                     try await chatDeletevm.deleteChat(chatId: chatId)
                                                 }
@@ -124,26 +125,31 @@ struct ContactView: View {
 
 struct ChatList: View {
     let chat: Chats
-    
+
+    @State private var showDetail = false
+    @State private var showChat = false
+
     private var isOwner: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
         return chat.sentTo == uid
     }
-    
+
     private var fixedItem: Item {
         var item = chat.item
         item.id = chat.itemID
         return item
     }
-    
+
     var body: some View {
-        HStack {
-            NavigationLink(destination: BranchDetailView(item: fixedItem)) {
+        HStack(spacing: 12) {
+            Button {
+                showDetail = true
+            } label: {
                 ZStack {
                     Color(isOwner ? .red : .blue)
                         .frame(width: 70, height: 70)
                         .clipShape(Circle())
-                    
+
                     if let url = URL(string: chat.item.imageURL) {
                         AsyncImage(url: url) { phase in
                             if let image = phase.image {
@@ -162,22 +168,32 @@ struct ChatList: View {
                     }
                 }
             }
-            .buttonStyle(.plain)
-            
-            NavigationLink(destination: ChatView(chat: chat)) {
+            .buttonStyle(.borderless)
+
+            Button {
+                showChat = true
+            } label: {
                 HStack {
-                    VStack {
+                    VStack(alignment: .leading) {
                         Text(chat.item.name)
                             .font(.headline)
-                            .lineLimit(1)
+                            .foregroundStyle(.black)
                             .padding(.top)
                         Spacer()
                     }
                     Spacer()
+                    
                 }
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
+        }
+        .padding(.vertical, 4)
+        .navigationDestination(isPresented: $showDetail) {
+            BranchDetailView(item: fixedItem)
+        }
+        .navigationDestination(isPresented: $showChat) {
+            ChatView(chat: chat)
         }
     }
 }
