@@ -18,7 +18,7 @@ struct ChatView: View {
     @State var chat: Chats
     @State var text: String = ""
     @FocusState private var isFocused: Bool
-    @ObservedObject private var viewModel = SendMessageViewModel()
+    @ObservedObject private var viewModel = MessageViewModel()
     @ObservedObject private var vm = MessageListViewModel()
     @State private var showPicker: Bool = false
     @State private var imageData: Data?
@@ -27,7 +27,6 @@ struct ChatView: View {
     }
     @State private var imageURL : String = ""
     @State var imageText: String = ""
-    
     @State private var selectedImage: SelectedImageURL?
     
     var body: some View {
@@ -40,7 +39,7 @@ struct ChatView: View {
                 ScrollView {
                     LazyVStack{
                         ForEach(vm.messages) { message in
-                            MessageList(message: message) { tappedURL in
+                            MessageList(message: message, chat: chat) { tappedURL in
                                 self.selectedImage = SelectedImageURL(url: tappedURL)
                             }
                             .id(message.id)
@@ -121,13 +120,13 @@ struct ChatView: View {
                 
                 Button{
                     if !text.hasnotContent{
-                        viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text"){ success in
+                        viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text", imagePublicId: nil){ success in
                             text = ""
                         }
                     }else if checkImage{
-                        ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { url in
-                            imageText = url!
-                            viewModel.sendMessage(content: imageText, chatID: chat.id!, contentType: "image"){ success in
+                        ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { result in
+                            imageText = result!.url
+                            viewModel.sendMessage(content: imageText, chatID: chat.id!, contentType: "image", imagePublicId: result?.publicId){ success in
                                 imageText = ""
                             }
                         }
@@ -149,7 +148,9 @@ struct ChatView: View {
 }
 
 struct MessageList: View {
+    @ObservedObject private var viewModel = MessageViewModel()
     let message: Message
+    let chat: Chats
     var onImageTapped: ((URL) -> Void)? = nil
     
     private var isSender: Bool {
@@ -159,6 +160,14 @@ struct MessageList: View {
     
     private var isText: Bool {
         message.contentType == "text"
+    }
+    
+    private var isImage: Bool {
+        message.contentType == "image"
+    }
+    
+    private var isDelete: Bool {
+        message.contentType == "Delete"
     }
     
     var body: some View {
@@ -173,20 +182,22 @@ struct MessageList: View {
                             .foregroundStyle(.gray)
                     }
                     if isText{
-                        Text(message.content)
+                        Text(message.content!)
                             .padding()
                             .foregroundStyle(.white)
                             .background(Color.green)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .contextMenu{
                                 Button{
-                                    
+                                    Task {
+                                        await viewModel.unsendMessage(message: message, chat: chat)
+                                    }
                                 }label: {
                                     Text("送信取り消し")
                                 }
                             }
-                    }else{
-                        if let url = URL(string: message.content) {
+                    }else if isImage{
+                        if let url = URL(string: message.content!) {
                             AsyncImage(url: url) { phase in
                                 if let image = phase.image {
                                     image.resizable()
@@ -204,31 +215,49 @@ struct MessageList: View {
                             }
                             .contextMenu{
                                 Button{
-                                    
+                                    Task {
+                                        await viewModel.unsendMessage(message: message, chat: chat)
+                                    }
                                 }label: {
                                     Text("送信取り消し")
                                 }
                             }
                         }
+                    }else if isDelete{
+                        Text("送信取り消し")
+                            .font(.callout)
+                            .foregroundStyle(.white)
+                            .background(.gray)
+                            .padding()
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }else{
+                        Text("不明なエラー")
+                            .font(.callout)
+                            .foregroundStyle(.white)
+                            .background(.red)
+                            .padding()
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }
             }else{
                 HStack{
                     if isText{
-                        Text(message.content)
+                        Text(message.content!)
                             .padding()
                             .foregroundStyle(.white)
                             .background(Color.blue)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .contextMenu{
                                 Button{
-                                    
+                                    Task {
+                                        await viewModel.unsendMessage(message: message, chat: chat)
+                                    }
                                 }label: {
                                     Text("送信取り消し")
                                 }
                             }
-                    }else{
-                        if let url = URL(string: message.content) {
+                    }else if isImage{
+                        if let url = URL(string: message.content!) {
                             AsyncImage(url: url) { phase in
                                 if let image = phase.image {
                                     image.resizable()
@@ -246,13 +275,30 @@ struct MessageList: View {
                             }
                             .contextMenu{
                                 Button{
-                                    
+                                    Task {
+                                        await viewModel.unsendMessage(message: message, chat: chat)
+                                    }
                                 }label: {
                                     Text("送信取り消し")
                                 }
                             }
                         }
+                    }else if isDelete{
+                        Text("送信取り消し")
+                            .font(.callout)
+                            .foregroundStyle(.white)
+                            .background(.gray)
+                            .padding()
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }else{
+                        Text("不明なエラー")
+                            .font(.callout)
+                            .foregroundStyle(.white)
+                            .background(.red)
+                            .padding()
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
+                    
                     VStack{
                         Spacer()
                         Text(message.createdAt!, style: .time)
@@ -351,3 +397,4 @@ extension String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
+

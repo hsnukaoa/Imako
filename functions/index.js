@@ -187,3 +187,34 @@ exports.deleteAccount = onCall(async (request) => {
     throw new HttpsError("internal", "サーバーエラーが発生しました。");
   }
 });
+
+
+exports.deleteCloudinaryImage = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "ログイン状態が確認できませんでした。");
+  }
+
+  // 2. Swift側から渡されたパラメータ(publicId)を取得
+  const { publicId } = request.data;
+  if (!publicId || typeof publicId !== "string") {
+    throw new HttpsError("invalid-argument", "画像の publicId が正しく指定されていません。");
+  }
+
+  // 3. Cloudinaryから画像を削除
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log(`Cloudinary削除結果 (${publicId}):`, result);
+
+    // destroyメソッドは成功しても { result: 'ok' } 以外（'not found'など）を返すことがあるため確認
+    if (result.result === 'ok' || result.result === 'not found') {
+      return { success: true, message: "画像の削除に成功しました" };
+    } else {
+      throw new HttpsError("internal", `Cloudinaryで不明なエラー: ${result.result}`);
+    }
+
+  } catch (error) {
+    console.error(`Cloudinary画像の削除に失敗しました (${publicId}):`, error);
+    throw new HttpsError("internal", "サーバーエラーにより画像の削除に失敗しました。");
+  }
+});

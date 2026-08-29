@@ -16,7 +16,7 @@ class ImageService {
     static let uploadPreset = "imaco_photo_preset"
     
     //画像をCloudinaryにアップロードする関数
-    static func uploadToCloudinary(image: UIImage, completion: @escaping (String?) -> Void) {
+    static func uploadToCloudinary(image: UIImage, completion: @escaping ((url: String, publicId: String)?) -> Void) {
         let resizedImage = resizeImage(image, maxDimension: 800.0) ?? image
         
         guard let imageData = resizedImage.jpegData(compressionQuality: 0.4) else {
@@ -32,8 +32,8 @@ class ImageService {
                 completion(nil)
                 return
             }
-            if let urlString = result?.secureUrl {
-                completion(urlString)
+            if let urlString = result?.secureUrl, let publicId = result?.publicId {
+                completion((url: urlString, publicId: publicId))
             } else {
                 completion(nil)
             }
@@ -64,3 +64,4 @@ class ImageService {
         }
     }
 }
+

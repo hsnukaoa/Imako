@@ -37,18 +37,18 @@ struct Chats : Codable, Identifiable {
 
 struct Message : Codable, Identifiable {
     @DocumentID var id: String?
-    var content: String
+    var content: String?
     var createdAt: Date?
     var senderID: String
     var contentType: String
-    var isDelete: Bool
+    var imagePublicId: String?
     
-    init(content: String, senderID: String, contentType: String){
+    init(content: String, senderID: String, contentType: String, imagePublicId: String?){
         self.content = content
         self.senderID = senderID
         self.createdAt = Date()
         self.contentType = contentType
-        self.isDelete = false
+        self.imagePublicId  = imagePublicId
     }
 }
 
@@ -76,18 +76,13 @@ struct Item: Codable, Identifiable, Hashable{
         case chatIDs = "chats"
     }
     
-    init(name: String, ownerID : String, imageURL: String, canCall: Bool, lostNumber: Int?) {
+    init(name: String, ownerID : String, imageURL: String, canCall: Bool, lostNumber: Int?, imagePublicId: String?) {
         self.name = name
         self.ownerID = ownerID
         self.imageURL = imageURL
         self.canCall = canCall
         self.createdAt = Date()
-        if let url = URL(string: imageURL) {
-            let publicId = url.deletingPathExtension().lastPathComponent
-            self.imagePublicId = publicId
-        } else {
-            self.imagePublicId = nil
-        }
+        self.imagePublicId = imagePublicId
         self.lostNumber = lostNumber
     }
 }

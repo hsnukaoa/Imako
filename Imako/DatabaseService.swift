@@ -10,6 +10,7 @@ import FirebaseFirestore
 import Combine
 import FirebaseAuth
 import UIKit
+import FirebaseFunctions
 
 class DatabaseService {
     private let db = Firestore.firestore()
@@ -122,10 +123,10 @@ class ItemRegistrationViewModel: ObservableObject {
         
         isSaving = true
         
-        ImageService.uploadToCloudinary(image: image) { [weak self] imageUrl in
+        ImageService.uploadToCloudinary(image: image) { [weak self] result in
             guard let self = self else { return }
             
-            guard let url = imageUrl else {
+            guard let result = result else {
                 print("画像アップロード失敗")
                 DispatchQueue.main.async {
                     self.isSaving = false
@@ -137,9 +138,10 @@ class ItemRegistrationViewModel: ObservableObject {
             let newItem = Item(
                 name: name,
                 ownerID: uid,
-                imageURL: url,
+                imageURL: result.url,
                 canCall: canCall,
-                lostNumber: lostNumber ?? 0
+                lostNumber: lostNumber ?? 0,
+                imagePublicId: result.publicId
             )
             
             self.dbService.saveItem(item: newItem) { documentID in
@@ -261,15 +263,15 @@ class UserRegistrationViewModel: ObservableObject {
     }
 }
 
-//メッセージを送信する関数
-class SendMessageViewModel: ObservableObject {
+//メッセージを関連の関数
+class MessageViewModel: ObservableObject {
     private let dbService = DatabaseService()
     
     var currentUserID: String? {
         Auth.auth().currentUser?.uid
     }
     
-    func sendMessage(content: String, chatID: String,contentType: String, completion: @escaping (Bool) -> Void) {
+    func sendMessage(content: String, chatID: String,contentType: String,imagePublicId: String?, completion: @escaping (Bool) -> Void) {
         guard let uid = currentUserID else {
             print("エラー: ログインしていません")
             completion(false)
@@ -279,7 +281,8 @@ class SendMessageViewModel: ObservableObject {
         let message = Message(
             content: content,
             senderID: uid,
-            contentType: contentType
+            contentType: contentType,
+            imagePublicId: imagePublicId
         )
         
         dbService.sendMessage(message: message, chatID: chatID) { documentID in
@@ -290,6 +293,37 @@ class SendMessageViewModel: ObservableObject {
                     completion(false)
                 }
             }
+        }
+    }
+    
+    func unsendMessage(message: Message, chat: Chats) async {
+        let db = Firestore.firestore()
+        lazy var functions = Functions.functions(region: "asia-northeast1")
+        
+        if message.contentType == "image", let publicId = message.imagePublicId {
+            do {
+                let result = try await functions.httpsCallable("deleteCloudinaryImage").call(["publicId": publicId])
+                print("Cloudinary画像の削除成功: \(result.data)")
+            } catch {
+                print("Cloudinary画像の削除失敗: \(error)")
+            }
+        } else if message.contentType == "image" {
+            print("imagePublicIdがnilのため、Cloudinary画像の削除をスキップします")
+        }
+        
+        guard let messageId = message.id else { return }
+        guard let chatId = chat.id else { return }
+        let messageRef = db.collection("chats").document(chatId).collection("messages").document(messageId)
+        
+        do {
+            try await messageRef.updateData([
+                "contentType": "Delete",
+                "content": FieldValue.delete(),
+                "imagePublicId": FieldValue.delete()
+            ])
+            print("メッセージの送信取り消し（Firestore更新）完了")
+        } catch {
+            print("Firestoreの更新失敗: \(error)")
         }
     }
 }
@@ -345,8 +379,8 @@ class ItemEditViewModel: ObservableObject {
         
         // 2. 画像の変更がある場合
         if let imageToUpload = newImage {
-            ImageService.uploadToCloudinary(image: imageToUpload) { [weak self] imageUrlString in
-                guard let self = self, let urlString = imageUrlString else {
+            ImageService.uploadToCloudinary(image: imageToUpload) { [weak self] result in
+                guard let self = self, let result = result else {
                     print("画像アップロード失敗")
                     DispatchQueue.main.async {
                         self?.isUpdating = false
@@ -356,13 +390,9 @@ class ItemEditViewModel: ObservableObject {
                 }
                 
                 // 画像URLを辞書に追加
-                updatedData["imageURL"] = urlString
+                updatedData["imageURL"] = result.url
                 
-                // Itemのinitと同じロジックで publicId を抽出して辞書に追加
-                if let url = URL(string: urlString) {
-                    let publicId = url.deletingPathExtension().lastPathComponent
-                    updatedData["imagePublicId"] = publicId
-                }
+                updatedData["imagePublicId"] = result.publicId
                 
                 self.saveChanges(itemID: itemID, updatedData: updatedData, completion: completion)
             }
@@ -393,3 +423,4 @@ class ItemEditViewModel: ObservableObject {
         }
     }
 }
+
