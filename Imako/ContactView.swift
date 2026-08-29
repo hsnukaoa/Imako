@@ -59,10 +59,14 @@ struct ContactView: View {
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button {
                                             if let chatId = chat.id {
+                                                viewModel.removeChatLocally(chatID: chatId)
+                                                
                                                 Task {
-                                                    //TODO: チャットを消す時に、Firebase側の処理に関わらずボタンを押した直後にそのチャットは非表示にする
-                                                    //TODO: チャットを消した時に、item > chatIDsの中身も削除するようにする
-                                                    try await chatDeletevm.deleteChat(chatId: chatId)
+                                                    do {
+                                                        try await chatDeletevm.deleteChat(chatId: chatId)
+                                                    } catch {
+                                                        print("チャットの削除に失敗しました: \(error)")
+                                                    }
                                                 }
                                             }
                                         } label: {
@@ -125,21 +129,21 @@ struct ContactView: View {
 
 struct ChatList: View {
     let chat: Chats
-
+    
     @State private var showDetail = false
     @State private var showChat = false
-
+    
     private var isOwner: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
         return chat.sentTo == uid
     }
-
+    
     private var fixedItem: Item {
         var item = chat.item
         item.id = chat.itemID
         return item
     }
-
+    
     var body: some View {
         HStack(spacing: 12) {
             Button {
@@ -149,7 +153,7 @@ struct ChatList: View {
                     Color(isOwner ? .red : .blue)
                         .frame(width: 70, height: 70)
                         .clipShape(Circle())
-
+                    
                     if let url = URL(string: chat.item.imageURL) {
                         AsyncImage(url: url) { phase in
                             if let image = phase.image {
@@ -169,7 +173,7 @@ struct ChatList: View {
                 }
             }
             .buttonStyle(.borderless)
-
+            
             Button {
                 showChat = true
             } label: {

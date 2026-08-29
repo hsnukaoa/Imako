@@ -131,4 +131,19 @@ class ChatListViewModel: ObservableObject {
         }
         return fetchedChats
     }
+    
+    // MARK: - ローカル削除（Optimistic UI用）
+    func removeChatLocally(chatID: String) {
+        // 1. UIにバインドされている配列から即座に削除
+        self.chats.removeAll { $0.id == chatID }
+        self.findItemChats.removeAll { $0.id == chatID }
+        self.lostItemChats.removeAll { $0.id == chatID }
+        
+        // 2. マップから削除
+        self.currentChatsMap.removeValue(forKey: chatID)
+        
+        // 3. リスナーを解除
+        chatListeners[chatID]?.remove()
+        chatListeners.removeValue(forKey: chatID)
+    }
 }

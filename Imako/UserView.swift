@@ -96,8 +96,9 @@ struct UserView: View {
         }
         .alert("アカウントを削除しますか？", isPresented: $showAlert) {
             Button("削除", role: .destructive) {
-                //TODO: ユーザー削除の際に、FireStoreの関連データも共に削除するようにする
-                vm.deleteUser()
+                Task {
+                    await vm.deleteUser()
+                }
             }
             Button("キャンセル", role: .cancel) {}
         } message: {
@@ -109,3 +110,4 @@ struct UserView: View {
 #Preview {
     UserView()
 }
+

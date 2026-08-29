@@ -9,13 +9,18 @@
 
 const { setGlobalOptions } = require("firebase-functions");
 const { onDocumentDeleted, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
 const cloudinary = require("cloudinary").v2;
 
 initializeApp();
 
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({
+    region: "asia-northeast1",
+    maxInstances: 10
+});
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -42,7 +47,6 @@ exports.onItemDeleted = onDocumentDeleted("items/{itemId}", async (event) => {
     console.log("このドキュメントにはCloudinaryの画像が紐付いていませんでした。");
   }
 
-  // ⚠️修正箇所:
   // Swift側の CodingKeys で `case chatIDs = "chats"` としているため、
   // Firestoreに保存されているフィールド名は `chatsArray` ではなく `chats` になります。
   const chatsArray = deletedData.chats;
@@ -66,23 +70,54 @@ exports.onItemDeleted = onDocumentDeleted("items/{itemId}", async (event) => {
 });
 
 exports.onChatDeleted = onDocumentDeleted("chats/{chatId}", async (event) => {
+  const snap = event.data;
+  if (!snap) return;
+  
+  const deletedChat = snap.data();
   const db = getFirestore();
   const chatId = event.params.chatId;
+  
+  // 1. messages サブコレクションの削除
   const messagesRef = db.collection("chats").doc(chatId).collection("messages");
   await db.recursiveDelete(messagesRef);
 
+  // 2. 配列からのID削除用バッチを作成
+  const batch = db.batch();
+
+  // ① users コレクションから該当チャットIDを削除
   const usersSnapshot = await db.collection("users")
     .where("chats", "array-contains", chatId)
     .get();
 
   if (!usersSnapshot.empty) {
-    const batch = db.batch();
     usersSnapshot.forEach((userDoc) => {
       batch.update(userDoc.ref, {
         chats: FieldValue.arrayRemove(chatId),
       });
     });
+  }
+
+  // ② items コレクションから該当チャットIDを削除 (TODO 2 解決 ＋ 連鎖削除エラー防止策)
+  const itemID = deletedChat.itemID;
+  if (itemID) {
+    const itemRef = db.collection("items").doc(itemID);
+    
+    // 連鎖削除時（退会→アイテム削除→チャット削除）に、
+    // すでにアイテムが存在しない場合のエラーを防ぐため、存在チェックを挟みます。
+    const itemSnap = await itemRef.get();
+    if (itemSnap.exists) {
+      batch.update(itemRef, {
+        chats: FieldValue.arrayRemove(chatId),
+      });
+    }
+  }
+
+  // バッチ処理をコミット
+  try {
     await batch.commit();
+    console.log(`チャット (${chatId}) の削除に伴い、関連する users と items を更新しました`);
+  } catch (error) {
+    console.error(`チャット (${chatId}) に関連するデータの更新に失敗しました:`, error);
   }
 });
 
@@ -109,4 +144,46 @@ exports.deleteOldImageOnUpdate = onDocumentUpdated("items/{itemId}", async (even
   }
   
   return null;
+});
+
+// 新規追加: ユーザー退会処理（v2 Callable関数）
+exports.deleteAccount = onCall(async (request) => {
+  // リクエストしたユーザーのUIDを取得（未認証なら弾く）
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "ログイン状態が確認できませんでした。");
+  }
+
+  const db = getFirestore();
+
+  try {
+    const batch = db.batch();
+
+    // ① users コレクションから同じUIDを持つドキュメントを削除
+    const userRef = db.collection("users").doc(uid);
+    batch.delete(userRef);
+
+    // ② items コレクションから ownerID が uid と一致するものを検索
+    const itemsSnapshot = await db.collection("items")
+      .where("ownerID", "==", uid)
+      .get();
+
+    itemsSnapshot.forEach((itemDoc) => {
+      batch.delete(itemDoc.ref);
+    });
+
+    // バッチ処理を実行（DBのデータを一括削除）
+    await batch.commit();
+    console.log(`DB削除完了: ユーザー(${uid}) と アイテム ${itemsSnapshot.size} 件`);
+
+    // ③ 最後に Firebase Authentication からユーザー本体を削除
+    await getAuth().deleteUser(uid);
+    console.log(`Auth削除完了: ユーザー(${uid})`);
+
+    return { success: true, message: "退会処理が正常に完了しました。" };
+    
+  } catch (error) {
+    console.error(`ユーザー(${uid}) の退会処理に失敗しました:`, error);
+    throw new HttpsError("internal", "サーバーエラーが発生しました。");
+  }
 });

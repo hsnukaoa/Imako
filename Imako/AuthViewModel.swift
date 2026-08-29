@@ -8,6 +8,7 @@
 import FirebaseAuth
 import SwiftUI
 import Combine
+import FirebaseFunctions
 
 @MainActor
 class AuthViewModel: ObservableObject {
@@ -61,12 +62,30 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func deleteUser(){
-        guard let user = Auth.auth().currentUser else { return }
-        user.delete { [weak self] error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self?.errorMessage = error.localizedDescription
+    func deleteUser() async {
+        let functions = Functions.functions(region: "asia-northeast1")
+        
+        do {
+            print("退会処理を開始します...")
+            let result = try await functions.httpsCallable("deleteAccount").call()
+            
+            if let data = result.data as? [String: Any],
+               let message = data["message"] as? String {
+                print("サーバー処理成功: \(message)")
+            }
+            
+            try Auth.auth().signOut()
+            print("アプリのサインアウトが完了しました。")
+            
+        } catch {
+            print("退会処理に失敗しました: \(error.localizedDescription)")
+            
+            if let error = error as NSError? {
+                if error.domain == FunctionsErrorDomain {
+                    let code = FunctionsErrorCode(rawValue: error.code)
+                    let details = error.userInfo[FunctionsErrorDetailsKey]
+                    print("Functionsエラーコード: \(String(describing: code))")
+                    print("エラー詳細: \(String(describing: details))")
                 }
             }
         }
