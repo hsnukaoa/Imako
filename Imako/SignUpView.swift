@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+//TODO: 新規ユーザーが作成されるときにFirebaseFirestoreのusers > (documentID) にchatIDsという配列が作成され、その中にuidが保存されるバグの解消
+
 struct SignUpView: View {
     @State private var email = ""
     @State private var password = ""

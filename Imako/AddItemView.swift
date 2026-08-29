@@ -120,6 +120,7 @@ struct AddItemView: View {
                                     .padding(13)
                                     .glassEffect(.regular, in: .circle)
                             }
+                            .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
                             .buttonStyle(.plain)
                             .offset(x: 8, y: 8)
                         }
@@ -169,7 +170,6 @@ struct AddItemView: View {
                 }
             }
         }
-        .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
         .alert("エラー", isPresented: $showErrorAlert) {
             Button("OK", role: .cancel) { }
         } message: {

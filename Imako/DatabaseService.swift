@@ -269,7 +269,7 @@ class SendMessageViewModel: ObservableObject {
         Auth.auth().currentUser?.uid
     }
     
-    func sendMessage(content: String, chatID: String, completion: @escaping (Bool) -> Void) {
+    func sendMessage(content: String, chatID: String,contentType: String, completion: @escaping (Bool) -> Void) {
         guard let uid = currentUserID else {
             print("エラー: ログインしていません")
             completion(false)
@@ -278,7 +278,8 @@ class SendMessageViewModel: ObservableObject {
         
         let message = Message(
             content: content,
-            senderID: uid
+            senderID: uid,
+            contentType: contentType
         )
         
         dbService.sendMessage(message: message, chatID: chatID) { documentID in

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import DesignSystem
 
 struct ChatView: View {
     @State var chat: Chats
@@ -14,6 +15,13 @@ struct ChatView: View {
     @FocusState private var isFocused: Bool
     @ObservedObject private var viewModel = SendMessageViewModel()
     @ObservedObject private var vm = MessageListViewModel()
+    @State private var showPicker: Bool = false
+    @State private var imageData: Data?
+    private var checkImage: Bool {
+        return imageData != nil
+    }
+    @State private var imageURL : String = ""
+    @State var imageText: String = ""
     
     
     var body: some View {
@@ -68,40 +76,65 @@ struct ChatView: View {
     }
     
     private var footer: some View{
-        HStack{
-            Spacer()
-            
-            Button{
-                
-            }label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 25))
-            }
-            .padding()
-            .buttonStyle(.plain)
-            
-            TextField("Aa", text: $text, axis: .vertical)
-                .padding(.leading)
-                .padding(.trailing)
-                .frame(minHeight: 40)
-                .background(Color.gray.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 26))
-                .focused($isFocused)
-            
-            Button{
-                viewModel.sendMessage(content: text, chatID: chat.id!){ success in
-                    text = ""
+        VStack{
+            HStack{
+                if let imageData, let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding()
                 }
-            }label: {
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 25))
-                    .foregroundStyle(.green)
+                Spacer()
             }
-            .padding()
-            .buttonStyle(.plain)
-            .disabled(text.hasnotContent)
             
-            Spacer()
+            HStack{
+                Spacer()
+                Button{
+                    showPicker = true
+                }label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 25))
+                }
+                .padding()
+                .buttonStyle(.plain)
+                .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
+                
+                TextField("Aa", text: $text, axis: .vertical)
+                    .padding(.leading)
+                    .padding(.trailing)
+                    .frame(minHeight: 40)
+                    .background(Color.gray.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+                    .focused($isFocused)
+                
+                Button{
+                    if !text.hasnotContent{
+                        viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text"){ success in
+                            text = ""
+                        }
+                    }else if checkImage{
+                        ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { url in
+                            imageText = url!
+                            viewModel.sendMessage(content: imageText, chatID: chat.id!, contentType: "image"){ success in
+                                imageText = ""
+                            }
+                        }
+                        
+                        imageData = nil
+                    }
+                }label: {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 25))
+                        .foregroundStyle(.green)
+                }
+                .padding()
+                .buttonStyle(.plain)
+                .disabled(text.hasnotContent && !checkImage)
+                
+                Spacer()
+            }
         }
     }
 }
@@ -114,36 +147,90 @@ struct MessageList: View {
         return message.senderID == uid
     }
     
+    private var isText: Bool {
+        message.contentType == "text"
+    }
+    
     var body: some View {
         HStack {
             if isSender {
                 HStack{
                     Spacer()
-                    Text(message.content)
-                        .padding()
-                        .foregroundStyle(.white)
-                        .background(Color.green)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    VStack{
+                        Spacer()
+                        Text(message.createdAt!, style: .time)
+                            .font(.callout)
+                            .foregroundStyle(.gray)
+                    }
+                    if isText{
+                        Text(message.content)
+                            .padding()
+                            .foregroundStyle(.white)
+                            .background(Color.green)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }else{
+                        if let url = URL(string: message.content) {
+                            AsyncImage(url: url) { phase in
+                                if let image = phase.image {
+                                    image.resizable()
+                                        .scaledToFit()
+                                } else if phase.error != nil {
+                                    Image(systemName: "photo.badge.exclamationmark")
+                                        .foregroundStyle(.gray)
+                                } else {
+                                    ProgressView()
+                                }
+                            }
+                            .frame(height: 200)
+                        }
+                    }
                 }
             }else{
                 HStack{
-                    Text(message.content)
-                        .padding()
-                        .foregroundStyle(.white)
-                        .background(Color.blue)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    if isText{
+                        Text(message.content)
+                            .padding()
+                            .foregroundStyle(.white)
+                            .background(Color.blue)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }else{
+                        if let url = URL(string: message.content) {
+                            AsyncImage(url: url) { phase in
+                                if let image = phase.image {
+                                    image.resizable()
+                                        .scaledToFit()
+                                } else if phase.error != nil {
+                                    Image(systemName: "photo.badge.exclamationmark")
+                                        .foregroundStyle(.gray)
+                                } else {
+                                    ProgressView()
+                                }
+                            }
+                            .frame(height: 200)
+                        }
+                    }
+                    VStack{
+                        Spacer()
+                        Text(message.createdAt!, style: .time)
+                            .font(.callout)
+                            .foregroundStyle(.gray)
+                    }
                     Spacer()
                 }
             }
         }
-        
+        .contextMenu{
+            Button{
+                
+            }label: {
+                Text("送信取り消し")
+            }
+        }
     }
 }
 
 extension String {
-    /// 改行、タブ、スペースしか含まれていない場合は true を返す
     var hasnotContent: Bool {
         return self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
-

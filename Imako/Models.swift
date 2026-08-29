@@ -40,11 +40,15 @@ struct Message : Codable, Identifiable {
     var content: String
     var createdAt: Date?
     var senderID: String
+    var contentType: String
+    var isDelete: Bool
     
-    init(content: String, senderID: String){
+    init(content: String, senderID: String, contentType: String){
         self.content = content
         self.senderID = senderID
         self.createdAt = Date()
+        self.contentType = contentType
+        self.isDelete = false
     }
 }
 
