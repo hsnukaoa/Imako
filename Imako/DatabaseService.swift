@@ -24,6 +24,18 @@ class DatabaseService {
         }
     }
     
+    // 指定したアイテムの情報を更新する関数
+    func updateItem(itemID: String, updatedData: [String: Any], completion: @escaping (Bool) -> Void) {
+        db.collection("items").document(itemID).updateData(updatedData) { error in
+            if let error = error {
+                print("Firebaseアイテム更新エラー: \(error)")
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
     func updateCanCall(itemID: String, canCall: Bool) {
         db.collection("items").document(itemID).updateData([
             "canCall": canCall
@@ -144,6 +156,7 @@ class ItemRegistrationViewModel: ObservableObject {
     }
 }
 
+//チャットを作成するクラス
 class ChatCreateViewModel: ObservableObject {
     private let dbService = DatabaseService()
     
@@ -248,6 +261,7 @@ class UserRegistrationViewModel: ObservableObject {
     }
 }
 
+//メッセージを送信する関数
 class SendMessageViewModel: ObservableObject {
     private let dbService = DatabaseService()
     
@@ -297,5 +311,84 @@ class ChatsDeleteViewModel: ObservableObject {
         let db = Firestore.firestore()
         let chatRef = db.collection("chats").document(chatId)
         try await chatRef.delete()
+    }
+}
+
+class ItemEditViewModel: ObservableObject {
+    @Published var isUpdating = false
+    private let dbService = DatabaseService()
+    
+    /// アイテム情報を編集する関数（値がある項目のみ更新）
+    func editItem(
+        itemID: String,
+        name: String? = nil,
+        canCall: Bool? = nil,
+        lostNumber: Int? = nil,
+        newImage: UIImage? = nil,
+        completion: @escaping (Bool) -> Void
+    ) {
+        isUpdating = true
+        
+        // 1. 更新用の辞書を動的に作成（値が存在するものだけ追加）
+        var updatedData: [String: Any] = [:]
+        
+        if let newName = name {
+            updatedData["name"] = newName
+        }
+        if let newCanCall = canCall {
+            updatedData["canCall"] = newCanCall
+        }
+        if let newLostNumber = lostNumber {
+            updatedData["lostNumber"] = newLostNumber
+        }
+        
+        // 2. 画像の変更がある場合
+        if let imageToUpload = newImage {
+            ImageService.uploadToCloudinary(image: imageToUpload) { [weak self] imageUrlString in
+                guard let self = self, let urlString = imageUrlString else {
+                    print("画像アップロード失敗")
+                    DispatchQueue.main.async {
+                        self?.isUpdating = false
+                        completion(false)
+                    }
+                    return
+                }
+                
+                // 画像URLを辞書に追加
+                updatedData["imageURL"] = urlString
+                
+                // Itemのinitと同じロジックで publicId を抽出して辞書に追加
+                if let url = URL(string: urlString) {
+                    let publicId = url.deletingPathExtension().lastPathComponent
+                    updatedData["imagePublicId"] = publicId
+                }
+                
+                self.saveChanges(itemID: itemID, updatedData: updatedData, completion: completion)
+            }
+        }
+        // 3. 画像の変更がない場合
+        else {
+            guard !updatedData.isEmpty else {
+                print("更新するデータがありません")
+                DispatchQueue.main.async {
+                    self.isUpdating = false
+                    completion(true)
+                }
+                return
+            }
+            
+            self.saveChanges(itemID: itemID, updatedData: updatedData, completion: completion)
+        }
+    }
+    
+    // Firestoreへの保存処理をまとめたプライベート関数
+    private func saveChanges(itemID: String, updatedData: [String: Any], completion: @escaping (Bool) -> Void) {
+        // ※ DatabaseServiceに前述の updateItem 関数が追加されている前提です
+        dbService.updateItem(itemID: itemID, updatedData: updatedData) { [weak self] success in
+            DispatchQueue.main.async {
+                self?.isUpdating = false
+                completion(success)
+            }
+        }
     }
 }

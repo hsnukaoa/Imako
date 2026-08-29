@@ -86,7 +86,7 @@ struct UserView: View {
         .toolbar(.hidden, for: .tabBar)
         .toolbar{
             ToolbarItem(placement: .secondaryAction){
-                Button{
+                Button(role: .destructive){
                     showAlert = true
                 }label: {
                     Text("アカウントを削除")

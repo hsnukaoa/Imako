@@ -188,7 +188,6 @@ struct ChatList: View {
             }
             .buttonStyle(.borderless)
         }
-        .padding(.vertical, 4)
         .navigationDestination(isPresented: $showDetail) {
             BranchDetailView(item: fixedItem)
         }

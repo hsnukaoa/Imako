@@ -8,7 +8,7 @@
  */
 
 const { setGlobalOptions } = require("firebase-functions");
-const { onDocumentDeleted } = require("firebase-functions/v2/firestore");
+const { onDocumentDeleted, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const cloudinary = require("cloudinary").v2;
@@ -42,7 +42,10 @@ exports.onItemDeleted = onDocumentDeleted("items/{itemId}", async (event) => {
     console.log("このドキュメントにはCloudinaryの画像が紐付いていませんでした。");
   }
 
-  const chatsArray = deletedData.chatsArray;
+  // ⚠️修正箇所:
+  // Swift側の CodingKeys で `case chatIDs = "chats"` としているため、
+  // Firestoreに保存されているフィールド名は `chatsArray` ではなく `chats` になります。
+  const chatsArray = deletedData.chats;
   
   if (chatsArray && Array.isArray(chatsArray) && chatsArray.length > 0) {
     try {
@@ -81,4 +84,29 @@ exports.onChatDeleted = onDocumentDeleted("chats/{chatId}", async (event) => {
     });
     await batch.commit();
   }
+});
+
+// v2 の `onDocumentUpdated` を使った書き方に修正
+exports.deleteOldImageOnUpdate = onDocumentUpdated("items/{itemId}", async (event) => {
+  // イベントデータが存在しない場合はスキップ
+  if (!event.data) return;
+
+  const beforeData = event.data.before.data();
+  const afterData = event.data.after.data();
+
+  const oldPublicId = beforeData.imagePublicId;
+  const newPublicId = afterData.imagePublicId;
+
+  if (oldPublicId && newPublicId && oldPublicId !== newPublicId) {
+    console.log(`画像の変更を検知しました。古い画像を削除します: ${oldPublicId}`);
+    
+    try {
+      const result = await cloudinary.uploader.destroy(oldPublicId);
+      console.log(`Cloudinary削除結果 (${oldPublicId}):`, result);
+    } catch (error) {
+      console.error(`Cloudinary画像の削除エラー (${oldPublicId}):`, error);
+    }
+  }
+  
+  return null;
 });

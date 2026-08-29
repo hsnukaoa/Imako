@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 struct OwnersItemView: View {
     @State var item: Item
@@ -14,6 +15,9 @@ struct OwnersItemView: View {
     @StateObject var viewModel = ChatListViewModel()
     @State private var chats: [Chats] = []
     @State private var isLoadingChats = false
+    @State var showEditSheet: Bool = false
+    
+    @State private var itemListener: ListenerRegistration?
     
     var body: some View {
         ScrollView{
@@ -91,13 +95,17 @@ struct OwnersItemView: View {
         .task {
             await loadChats()
         }
+        .onAppear {
+            listenToItem()
+        }
+        .onDisappear {
+            itemListener?.remove()
+        }
         .toolbar{
             ToolbarItem(placement:.topBarTrailing){
                 Button{
-                    item.canCall.toggle()
-                    
                     if let itemID = item.id {
-                        dbservice.updateCanCall(itemID: itemID, canCall: item.canCall)
+                        dbservice.updateCanCall(itemID: itemID, canCall: !item.canCall)
                     }
                 }label:{
                     Image(systemName: "phone.badge.checkmark")
@@ -125,6 +133,9 @@ struct OwnersItemView: View {
             ShowQRView(item: item)
         }
         .toolbar(.hidden, for: .tabBar)
+        .sheet(isPresented: $showEditSheet){
+            EditItemView(item: item)
+        }
     }
     
     private var header: some View {
@@ -141,6 +152,7 @@ struct OwnersItemView: View {
         HStack{
             Spacer()
             Button{
+                showEditSheet = true
             }label: {
                 Image(systemName: "square.and.pencil")
                     .font(.title2)
@@ -160,6 +172,29 @@ struct OwnersItemView: View {
             chats = fetched
         } else {
             chats = []
+        }
+    }
+    
+    private func listenToItem() {
+        guard let itemID = item.id else { return }
+        let db = Firestore.firestore()
+        
+        itemListener = db.collection("items").document(itemID).addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("アイテム情報の監視エラー: \(error)")
+                return
+            }
+            
+            guard let snapshot = snapshot, snapshot.exists else { return }
+            
+            do {
+                let updatedItem = try snapshot.data(as: Item.self)
+                DispatchQueue.main.async {
+                    self.item = updatedItem
+                }
+            } catch {
+                print("アイテムデータのデコードエラー: \(error)")
+            }
         }
     }
 }
