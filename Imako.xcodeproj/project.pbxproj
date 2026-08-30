@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6786D1EB303A6F14001BF682 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 6786D1EA303A6F14001BF682 /* FirebaseFunctions */; };
+		6786D1F83043FA9C001BF682 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 6786D1F73043FA9C001BF682 /* FirebaseMessaging */; };
 		A6F03DDD2F9CF29C00809696 /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = A6F03DDC2F9CF29C00809696 /* Cloudinary */; };
 		A6F03DE02F9CF2BA00809696 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = A6F03DDF2F9CF2BA00809696 /* DesignSystem */; };
 		A6F03DE32F9CF30600809696 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A6F03DE22F9CF30600809696 /* FirebaseAnalytics */; };
@@ -19,9 +20,22 @@
 		677BB4192F7C96C700ABC72C /* Imako.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Imako.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6786D1F63043FA3B001BF682 /* Exceptions for "Imako" folder in "Imako" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 677BB4182F7C96C700ABC72C /* Imako */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		677BB41B2F7C96C700ABC72C /* Imako */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6786D1F63043FA3B001BF682 /* Exceptions for "Imako" folder in "Imako" target */,
+			);
 			path = Imako;
 			sourceTree = "<group>";
 		};
@@ -34,6 +48,7 @@
 			files = (
 				A6F03DDD2F9CF29C00809696 /* Cloudinary in Frameworks */,
 				A6F03DE02F9CF2BA00809696 /* DesignSystem in Frameworks */,
+				6786D1F83043FA9C001BF682 /* FirebaseMessaging in Frameworks */,
 				A6F03DE32F9CF30600809696 /* FirebaseAnalytics in Frameworks */,
 				6786D1EB303A6F14001BF682 /* FirebaseFunctions in Frameworks */,
 				A6F03DE72F9CF30600809696 /* FirebaseFirestore in Frameworks */,
@@ -94,6 +109,7 @@
 				A6F03DE42F9CF30600809696 /* FirebaseAuth */,
 				A6F03DE62F9CF30600809696 /* FirebaseFirestore */,
 				6786D1EA303A6F14001BF682 /* FirebaseFunctions */,
+				6786D1F73043FA9C001BF682 /* FirebaseMessaging */,
 			);
 			productName = Imako;
 			productReference = 677BB4192F7C96C700ABC72C /* Imako.app */;
@@ -286,14 +302,18 @@
 		677BB4252F7C96C800ABC72C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = imacoIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Imako/Imako.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2S7SVJKY9L;
+				DEVELOPMENT_TEAM = G4L2ZPF9GF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Imako/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "いまこ";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSCameraUsageDescription = "持ち物の写真を撮影するために写真ライブラリへアクセスします";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "QRコードを保存するために写真ライブラリへ書き込みます";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真を登録するために写真ライブラリへアクセスします";
@@ -308,7 +328,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = name.kota.Imako;
+				PRODUCT_BUNDLE_IDENTIFIER = name.kota.Imaco;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -324,14 +344,18 @@
 		677BB4262F7C96C800ABC72C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = imacoIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Imako/Imako.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2S7SVJKY9L;
+				DEVELOPMENT_TEAM = G4L2ZPF9GF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Imako/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "いまこ";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSCameraUsageDescription = "持ち物の写真を撮影するために写真ライブラリへアクセスします";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "QRコードを保存するために写真ライブラリへ書き込みます";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真を登録するために写真ライブラリへアクセスします";
@@ -346,7 +370,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = name.kota.Imako;
+				PRODUCT_BUNDLE_IDENTIFIER = name.kota.Imaco;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -414,6 +438,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A6F03DE12F9CF30600809696 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFunctions;
+		};
+		6786D1F73043FA9C001BF682 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A6F03DE12F9CF30600809696 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 		A6F03DDC2F9CF29C00809696 /* Cloudinary */ = {
 			isa = XCSwiftPackageProductDependency;

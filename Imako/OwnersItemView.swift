@@ -40,23 +40,6 @@ struct OwnersItemView: View {
                     }
                 }
                 
-                HStack{
-                    Text("なくした回数:\(String(item.lostNumber ?? 0))")
-                        .font(.title.bold())
-                        .padding()
-                    Spacer()
-                }
-                .padding()
-                
-                HStack{
-                    Text("関連チャット")
-                        .font(.title.bold())
-                        .padding()
-                    
-                    Spacer()
-                }
-                .padding()
-                
                 LazyVStack{
                     ForEach(chats) { chat in
                         NavigationLink(destination: ChatView(chat: chat)){
@@ -102,22 +85,6 @@ struct OwnersItemView: View {
             itemListener?.remove()
         }
         .toolbar{
-            ToolbarItem(placement:.topBarTrailing){
-                Button{
-                    if let itemID = item.id {
-                        dbservice.updateCanCall(itemID: itemID, canCall: !item.canCall)
-                    }
-                }label:{
-                    Image(systemName: "phone.badge.checkmark")
-                        .foregroundStyle(.black)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(item.canCall ? Color.teal.opacity(0.6) : Color.gray.opacity(0.3))
-                .id(item.canCall)
-            }
-            
-            ToolbarSpacer(.fixed, placement: .topBarTrailing)
-            
             ToolbarItem(placement:.topBarTrailing){
                 Button{
                     ShowQRSheet.toggle()

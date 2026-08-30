@@ -187,24 +187,6 @@ struct EditItemView: View {
                 }
                 .padding()
                 
-                VStack{
-                    HStack{
-                        Spacer()
-                        
-                        Text("電話をかける")
-                            .font(.headline)
-                        
-                        Toggle(isOn: $canCall) {}
-                        Spacer()
-                    }
-                    .padding()
-                    
-                    Text(canCall ? "重大な落とし物をしたときに、発見者があなたに電話をかけることができるようになります" : "")
-                        .padding()
-                        .font(.callout)
-                }
-                .padding()
-                
                 Spacer()
             }
             .blur(radius: viewModel.isUpdating ? 3 : 0)

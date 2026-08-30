@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>418641830393-jmstm9eu4um9cct28hpe4vcuuqq42frl.apps.googleusercontent.com</string>
+	<string>418641830393-bdgtut1uo5armct3787veh8333kbm4of.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.418641830393-jmstm9eu4um9cct28hpe4vcuuqq42frl</string>
+	<string>com.googleusercontent.apps.418641830393-bdgtut1uo5armct3787veh8333kbm4of</string>
 	<key>API_KEY</key>
 	<string>AIzaSyA9m0blnBXTDcpjHDWwDmLmF5jRWH8-Hhc</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>name.kota.Imako</string>
+	<string>name.kota.Imaco</string>
 	<key>PROJECT_ID</key>
 	<string>imaco-c9213</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:418641830393:ios:c33fe3a83c5f9742781d28</string>
+	<string>1:418641830393:ios:ba64acc8f1a61bb7781d28</string>
 </dict>
 </plist>

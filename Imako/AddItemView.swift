@@ -49,7 +49,7 @@ struct AddItemView: View {
                             return
                         }
                         
-                        viewModel.registerNewItem(name: ItemName, image: uiImage, canCall: canCall, lostNumber: 0) { success in
+                        viewModel.registerNewItem(name: ItemName, image: uiImage, canCall: false, lostNumber: 0) { success in
                             if success {
                                 dismiss()
                             } else {
@@ -127,24 +127,6 @@ struct AddItemView: View {
                         
                         Spacer()
                     }
-                }
-                .padding()
-                
-                VStack{
-                    HStack{
-                        Spacer()
-                        
-                        Text("電話をかける")
-                            .font(.headline)
-                        
-                        Toggle(isOn: $canCall) {}
-                        Spacer()
-                    }
-                    .padding()
-                    
-                    Text(canCall ? "重大な落とし物をしたときに、発見者があなたに電話をかけることができるようになります" : "")
-                        .padding()
-                        .font(.callout)
                 }
                 .padding()
                 
