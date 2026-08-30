@@ -15,11 +15,13 @@ struct SelectedImageURL: Identifiable {
 }
 
 struct ChatView: View {
+    @StateObject private var actionVM = ChatActionViewModel()
+    @State private var showingBlockAlert = false
     @State var chat: Chats
     @State var text: String = ""
     @FocusState private var isFocused: Bool
-    @ObservedObject private var viewModel = MessageViewModel()
-    @ObservedObject private var vm = MessageListViewModel()
+    @StateObject private var viewModel = MessageViewModel()
+    @StateObject private var vm = MessageListViewModel()
     @State private var showPicker: Bool = false
     @State private var imageData: Data?
     private var checkImage: Bool {
@@ -28,6 +30,7 @@ struct ChatView: View {
     @State private var imageURL : String = ""
     @State var imageText: String = ""
     @State private var selectedImage: SelectedImageURL?
+    @StateObject private var statusVM = ChatStatusViewModel()
     
     var body: some View {
         ScrollViewReader { proxy in
@@ -35,6 +38,7 @@ struct ChatView: View {
                 Spacer()
                 Text("まだメッセージはありません")
                 Spacer()
+                footer
             }else {
                 ScrollView {
                     LazyVStack{
@@ -70,6 +74,63 @@ struct ChatView: View {
                 Text(chat.item.name)
                     .font(.headline)
             }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    // 追加処理
+                }label: {
+                    Image(systemName: "speaker.wave.2")
+                }
+            }
+            
+            ToolbarItem(placement: .secondaryAction) {
+                if statusVM.isBlock {
+                    Button {
+                        actionVM.unblockUser(chat: chat) { success in
+                            if success {
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "checkmark.circle")
+                            Text("ブロックを解除")
+                        }
+                        .foregroundColor(.blue)
+                    }
+                } else {
+                    Button {
+                        showingBlockAlert = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "nosign")
+                            Text("ブロック")
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+            }
+            
+            ToolbarItem(placement: .secondaryAction) {
+                Button(role: .destructive) {
+                    // 設定処理
+                }label: {
+                    HStack{
+                        Image(systemName: "exclamationmark.bubble")
+                        Text("ブロックして通報")
+                    }
+                }
+            }
+        }
+        .alert("ブロックしますか？", isPresented: $showingBlockAlert) {
+            Button("キャンセル", role: .cancel) { }
+            Button("ブロックする", role: .destructive) {
+                actionVM.blockUser(chat: chat) { success in
+                    if success {
+                    }
+                }
+            }
+        } message: {
+            Text("このユーザーからのメッセージを受け取れなくなります。")
         }
         .contentShape(Rectangle())
         .onTapGesture {
@@ -77,14 +138,24 @@ struct ChatView: View {
         }
         .onAppear{
             vm.fetchMessages(chatID: chat.id!)
+            if let chatID = chat.id {
+                statusVM.listenToChatStatus(chatID: chatID)
+            }
         }
         .fullScreenCover(item: $selectedImage) { selected in
             ImageDetailView(imageURL: selected.url)
         }
+        .onDisappear {
+            statusVM.stopListening()
+        }
+        .fullScreenCover(isPresented: $statusVM.isBlockedByOther) {
+            BlockedView()
+                .interactiveDismissDisabled()
+        }
     }
     
     private var footer: some View{
-        VStack{
+        VStack(spacing: 0){
             HStack{
                 if let imageData, let uiImage = UIImage(data: imageData) {
                     Image(uiImage: uiImage)
@@ -109,14 +180,29 @@ struct ChatView: View {
                 .padding()
                 .buttonStyle(.plain)
                 .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
+                .disabled(statusVM.isBlock)
                 
-                TextField("Aa", text: $text, axis: .vertical)
-                    .padding(.leading)
-                    .padding(.trailing)
+                if !statusVM.isBlock{
+                    TextField("Aa", text: $text, axis: .vertical)
+                        .padding(.leading)
+                        .padding(.trailing)
+                        .frame(minHeight: 40)
+                        .background(Color.gray.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 26))
+                        .focused($isFocused)
+                }else{
+                    HStack{
+                        Spacer()
+                        Text("ブロック中")
+                            .padding(.leading)
+                            .padding(.trailing)
+                            .foregroundStyle(.white)
+                        Spacer()
+                    }
                     .frame(minHeight: 40)
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.gray.opacity(0.5))
                     .clipShape(RoundedRectangle(cornerRadius: 26))
-                    .focused($isFocused)
+                }
                 
                 Button{
                     if !text.hasnotContent{
@@ -139,10 +225,11 @@ struct ChatView: View {
                 }
                 .padding()
                 .buttonStyle(.plain)
-                .disabled(text.hasnotContent && !checkImage)
+                .disabled(text.hasnotContent && !checkImage && statusVM.isBlock)
                 
                 Spacer()
             }
+            .background(.white)
         }
     }
 }

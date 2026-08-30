@@ -26,12 +26,16 @@ struct Chats : Codable, Identifiable {
     var sentTo: String
     var itemID: String
     var item: Item
+    var visibleTo: [String]
+    var blockedBy: [String]
     
     init(sentBy: String, sentTo: String, item: Item){
         self.sentBy = sentBy
         self.sentTo = sentTo
         self.item = item
         self.itemID = item.id!
+        self.visibleTo = [sentBy, sentTo]
+        self.blockedBy = []
     }
 }
 

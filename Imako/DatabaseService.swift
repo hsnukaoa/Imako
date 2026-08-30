@@ -103,6 +103,67 @@ class DatabaseService {
             completion(nil)
         }
     }
+    
+    func blockUser(chatID: String, currentUserID: String, targetUserID: String, completion: @escaping (Bool) -> Void) {
+        let batch = db.batch()
+        
+        // blockedByに自分を追加し、visibleToから相手を削除
+        let chatRef = db.collection("chats").document(chatID)
+        batch.updateData([
+            "blockedBy": FieldValue.arrayUnion([currentUserID]),
+            "visibleTo": FieldValue.arrayRemove([targetUserID])
+        ], forDocument: chatRef)
+        
+        // ドキュメントIDをブロック相手のuidに指定
+        let blockedUserRef = db.collection("users")
+            .document(currentUserID)
+            .collection("blockedUser")
+            .document(targetUserID)
+        
+        batch.setData(["blockedAt": FieldValue.serverTimestamp()], forDocument: blockedUserRef)
+        
+        // バッチ処理の実行
+        batch.commit { error in
+            if let error = error {
+                print("Firebaseブロック処理エラー: \(error)")
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // DatabaseService.swift 内に追加
+    
+    func unblockUser(chatID: String, currentUserID: String, targetUserID: String, completion: @escaping (Bool) -> Void) {
+        let batch = db.batch()
+        
+        // 1. chatsコレクションの更新
+        // blockedByから自分を削除し、visibleToに相手を戻す（追加する）
+        let chatRef = db.collection("chats").document(chatID)
+        batch.updateData([
+            "blockedBy": FieldValue.arrayRemove([currentUserID]),
+            "visibleTo": FieldValue.arrayUnion([targetUserID])
+        ], forDocument: chatRef)
+        
+        // 2. usersコレクションのサブコレクションから該当ドキュメントを削除
+        let blockedUserRef = db.collection("users")
+            .document(currentUserID)
+            .collection("blockedUser")
+            .document(targetUserID)
+        
+        batch.deleteDocument(blockedUserRef)
+        
+        // バッチ処理の実行
+        batch.commit { error in
+            if let error = error {
+                print("Firebaseブロック解除処理エラー: \(error)")
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
 }
 
 class ItemRegistrationViewModel: ObservableObject {
@@ -353,7 +414,6 @@ class ItemEditViewModel: ObservableObject {
     @Published var isUpdating = false
     private let dbService = DatabaseService()
     
-    /// アイテム情報を編集する関数（値がある項目のみ更新）
     func editItem(
         itemID: String,
         name: String? = nil,
@@ -364,7 +424,6 @@ class ItemEditViewModel: ObservableObject {
     ) {
         isUpdating = true
         
-        // 1. 更新用の辞書を動的に作成（値が存在するものだけ追加）
         var updatedData: [String: Any] = [:]
         
         if let newName = name {
@@ -377,7 +436,6 @@ class ItemEditViewModel: ObservableObject {
             updatedData["lostNumber"] = newLostNumber
         }
         
-        // 2. 画像の変更がある場合
         if let imageToUpload = newImage {
             ImageService.uploadToCloudinary(image: imageToUpload) { [weak self] result in
                 guard let self = self, let result = result else {
@@ -389,7 +447,6 @@ class ItemEditViewModel: ObservableObject {
                     return
                 }
                 
-                // 画像URLを辞書に追加
                 updatedData["imageURL"] = result.url
                 
                 updatedData["imagePublicId"] = result.publicId
@@ -397,7 +454,6 @@ class ItemEditViewModel: ObservableObject {
                 self.saveChanges(itemID: itemID, updatedData: updatedData, completion: completion)
             }
         }
-        // 3. 画像の変更がない場合
         else {
             guard !updatedData.isEmpty else {
                 print("更新するデータがありません")
@@ -424,3 +480,49 @@ class ItemEditViewModel: ObservableObject {
     }
 }
 
+class ChatActionViewModel: ObservableObject {
+    @Published var isProcessing = false
+    private let dbService = DatabaseService()
+    
+    var currentUserID: String? {
+        Auth.auth().currentUser?.uid
+    }
+    
+    func blockUser(chat: Chats, completion: @escaping (Bool) -> Void) {
+        guard let currentUID = currentUserID, let chatID = chat.id else {
+            completion(false)
+            return
+        }
+        
+        isProcessing = true
+        
+        // ブロックする相手のUIDを特定 (sentByが自分ならsentToが相手、逆も然り)
+        let targetUID = (chat.sentBy == currentUID) ? chat.sentTo : chat.sentBy
+        
+        dbService.blockUser(chatID: chatID, currentUserID: currentUID, targetUserID: targetUID) { [weak self] success in
+            DispatchQueue.main.async {
+                self?.isProcessing = false
+                completion(success)
+            }
+        }
+    }
+    
+    // ChatActionViewModel.swift 内に追加
+    
+    func unblockUser(chat: Chats, completion: @escaping (Bool) -> Void) {
+        guard let currentUID = currentUserID, let chatID = chat.id else {
+            completion(false)
+            return
+        }
+        
+        isProcessing = true
+        let targetUID = (chat.sentBy == currentUID) ? chat.sentTo : chat.sentBy
+        
+        dbService.unblockUser(chatID: chatID, currentUserID: currentUID, targetUserID: targetUID) { [weak self] success in
+            DispatchQueue.main.async {
+                self?.isProcessing = false
+                completion(success)
+            }
+        }
+    }
+}
