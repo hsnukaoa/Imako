@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var vm: AuthViewModel
+    @StateObject var chatListVM: ChatListViewModel
     
     var body: some View {
         TabView {
@@ -24,11 +25,7 @@ struct ContentView: View {
                 Image(systemName: "bubble.right")
                 Text("連絡")
             }.tag(3)
+                .badge(chatListVM.totalUnreadCount)
         }
     }
-}
-
-#Preview {
-    let previewVM = AuthViewModel()
-    ContentView(vm: previewVM)
 }

@@ -213,7 +213,8 @@ exports.sendNotificationOnNewMessage = onDocumentCreated("chats/{chatId}/message
   const db = getFirestore();
 
   try {
-    const chatDoc = await db.collection("chats").doc(chatId).get();
+    const chatRef = db.collection("chats").doc(chatId);
+    const chatDoc = await chatRef.get();
     if (!chatDoc.exists) return;
 
     const chatData = chatDoc.data();
@@ -225,7 +226,17 @@ exports.sendNotificationOnNewMessage = onDocumentCreated("chats/{chatId}/message
 
     const blockedBy = chatData.blockedBy || [];
     if (blockedBy.includes(receiverId) || blockedBy.includes(senderID)) {
-      console.log("ブロック設定のため通知をスキップします");
+      console.log("ブロック設定のため通知および未読インクリメントをスキップします");
+      return;
+    }
+
+    await chatRef.update({
+      [`unreadCounts.${receiverId}`]: FieldValue.increment(1)
+    });
+
+    const mutedBy = chatData.mutedBy || [];
+    if (mutedBy.includes(receiverId)) {
+      console.log(`ユーザー (${receiverId}) はミュート設定のため通知をスキップします`);
       return;
     }
 

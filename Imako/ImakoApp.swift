@@ -64,12 +64,13 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 struct ImakoApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject var vm = AuthViewModel()
+    @StateObject var chatListVM = ChatListViewModel()
     
     var body: some Scene {
         WindowGroup {
             NavigationView {
                 if vm.isLoggedIn {
-                    ContentView(vm: vm)
+                    ContentView(vm: vm, chatListVM: chatListVM)
                 } else {
                     LoginView(vm: vm)
                 }

@@ -32,6 +32,11 @@ struct ChatView: View {
     @State private var selectedImage: SelectedImageURL?
     @StateObject private var statusVM = ChatStatusViewModel()
     
+    private var isSender: Bool {
+        guard let uid = Auth.auth().currentUser?.uid else { return false }
+        return chat.sentTo == uid
+    }
+    
     var body: some View {
         ScrollViewReader { proxy in
             if vm.messages.isEmpty{
@@ -77,7 +82,13 @@ struct ChatView: View {
             
             ToolbarItem(placement: .primaryAction) {
                 Button{
-                    //ミュートボタン
+                    if isSender{
+                        let isMuted = chat.mutedBy?.contains(chat.sentTo) ?? false
+                        Task { await statusVM.toggleMute(chatID: chat.id ?? "", currentUserID: chat.sentTo, isCurrentlyMuted: isMuted)}
+                    }else{
+                        let isMuted = chat.mutedBy?.contains(chat.sentBy) ?? false
+                        Task { await statusVM.toggleMute(chatID: chat.id ?? "", currentUserID: chat.sentBy, isCurrentlyMuted: isMuted)}
+                    }
                 }label: {
                     Image(systemName: "speaker.wave.2")
                 }
@@ -112,7 +123,15 @@ struct ChatView: View {
             
             ToolbarItem(placement: .secondaryAction) {
                 Button(role: .destructive) {
-                    // 設定処理
+                    if isSender{
+                        Task {
+                            await statusVM.blockAndReport(targetUserID: chat.sentTo, currentUserID: chat.sentBy, chatID: chat.id ?? "")
+                        }
+                    }else{
+                        Task {
+                            await statusVM.blockAndReport(targetUserID: chat.sentBy, currentUserID: chat.sentTo, chatID: chat.id ?? "")
+                        }
+                    }
                 }label: {
                     HStack{
                         Image(systemName: "exclamationmark.bubble")
@@ -424,12 +443,6 @@ struct ImageDetailView: View {
                             saveImageToPhotoLibrary()
                         } label: {
                             Label("端末に保存", systemImage: "arrow.down.to.line")
-                        }
-                        
-                        Button {
-                            
-                        } label: {
-                            Label("転送", systemImage: "arrowshape.turn.up.right")
                         }
                     } label: {
                         Image(systemName: "ellipsis")

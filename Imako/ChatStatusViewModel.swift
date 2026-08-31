@@ -50,6 +50,62 @@ class ChatStatusViewModel: ObservableObject {
             }
     }
     
+    // MARK: - ミュート機能
+    func toggleMute(chatID: String, currentUserID: String, isCurrentlyMuted: Bool) async {
+        let chatRef = db.collection("chats").document(chatID)
+        do {
+            if isCurrentlyMuted {
+                // ミュート解除
+                try await chatRef.updateData([
+                    "mutedBy": FieldValue.arrayRemove([currentUserID])
+                ])
+            } else {
+                // ミュートする
+                try await chatRef.updateData([
+                    "mutedBy": FieldValue.arrayUnion([currentUserID])
+                ])
+            }
+        } catch {
+            print("ミュート設定の変更に失敗しました: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - ブロックして報告機能
+    // ※ 既存のブロック処理を呼んだ後、指定のGmail宛にメールを作成する画面を立ち上げます
+    func blockAndReport(targetUserID: String, currentUserID: String, chatID: String) async {
+        // 1. 既存のブロック処理を実行 (仮に blockUser() というメソッドがある前提)
+        // await blockUser(targetUserID: targetUserID, currentUserID: currentUserID, chatID: chatID)
+        
+        // 2. メールアプリを立ち上げる (mailtoスキームを利用)
+        let toEmail = "yutianchuankouta@gmail.com"
+        let subject = "【Imako】悪質なユーザーの報告"
+        let body = """
+            運営チーム様
+            
+            以下のユーザーについて報告します。
+            
+            ・報告対象のユーザーID: \(targetUserID)
+            ・チャットID: \(chatID)
+            ・報告者のユーザーID: \(currentUserID)
+            
+            【報告の理由を以下に記載してください】
+            
+            """
+        
+        guard let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "mailto:\(toEmail)?subject=\(encodedSubject)&body=\(encodedBody)") else {
+            return
+        }
+        
+        // メールアプリを開く
+        if UIApplication.shared.canOpenURL(url) {
+            await UIApplication.shared.open(url)
+        } else {
+            print("メールアプリが設定されていません")
+        }
+    }
+    
     // 画面が閉じられたら監視を解除（メモリリーク防止）
     func stopListening() {
         listener?.remove()

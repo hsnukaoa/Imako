@@ -83,12 +83,24 @@ class ChatListViewModel: ObservableObject {
     // MARK: - UIプロパティの更新
     private func updatePublishedProperties(currentUserID: String) {
         let allChats = Array(self.currentChatsMap.values)
-        // 例: 日付順にソートする場合（ChatsモデルにcreatedAt等がある場合）
-        // let sortedChats = allChats.sorted { $0.createdAt > $1.createdAt }
         
-        self.chats = allChats
-        self.findItemChats = allChats.filter { $0.sentBy == currentUserID }
-        self.lostItemChats = allChats.filter { $0.sentBy != currentUserID }
+        let visibleChats = allChats.filter { $0.visibleTo.contains(currentUserID) }
+        
+        self.chats = visibleChats
+        self.findItemChats = visibleChats.filter { $0.sentBy == currentUserID }
+        self.lostItemChats = visibleChats.filter { $0.sentBy != currentUserID }
+        
+        let totalUnread = visibleChats.reduce(0) { sum, chat in
+            let myUnreadCount = chat.unreadCounts?[currentUserID] ?? 0
+            return sum + myUnreadCount
+        }
+        self.totalUnreadCount = totalUnread
+        
+        UNUserNotificationCenter.current().setBadgeCount(totalUnread) { error in
+            if let error = error {
+                print("バッジの更新に失敗しました: \(error.localizedDescription)")
+            }
+        }
     }
     
     // MARK: - 監視の停止（画面遷移時やログアウト時などに呼ぶ）
@@ -147,5 +159,12 @@ class ChatListViewModel: ObservableObject {
         // 3. リスナーを解除
         chatListeners[chatID]?.remove()
         chatListeners.removeValue(forKey: chatID)
+    }
+    
+    func markAsRead(chatID: String) {
+        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
+        db.collection("chats").document(chatID).updateData([
+            "unreadCounts.\(currentUserID)": 0
+        ])
     }
 }
