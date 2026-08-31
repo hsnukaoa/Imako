@@ -9,6 +9,8 @@ import FirebaseAuth
 import SwiftUI
 import Combine
 import FirebaseFunctions
+import FirebaseMessaging
+import FirebaseFirestore
 
 @MainActor
 class AuthViewModel: ObservableObject {
@@ -38,7 +40,19 @@ class AuthViewModel: ObservableObject {
                     self.errorMessage = error.localizedDescription
                     return
                 }
-                self.viewModel.registerUser { success in }
+                
+                // ユーザー登録処理の完了後にトークンを保存
+                self.viewModel.registerUser { success in
+                    guard success else { return }
+                    
+                    Messaging.messaging().token { token, _ in
+                        if let token = token, let uid = Auth.auth().currentUser?.uid {
+                            let db = Firestore.firestore()
+                            db.collection("users").document(uid).setData(["fcmToken": token], merge: true)
+                            print("新規登録完了後にFCMトークンを保存しました: \(token)")
+                        }
+                    }
+                }
             }
         }
     }
@@ -49,6 +63,17 @@ class AuthViewModel: ObservableObject {
                 if let error = error {
                     self.errorMessage = error.localizedDescription
                     return
+                }
+                Messaging.messaging().token { token, error in
+                    if let error = error {
+                        print("FCMトークン手動取得エラー: \(error.localizedDescription)")
+                        return
+                    }
+                    if let token = token, let uid = Auth.auth().currentUser?.uid {
+                        let db = Firestore.firestore()
+                        db.collection("users").document(uid).setData(["fcmToken": token], merge: true)
+                        print("ログイン後にFCMトークンを保存しました: \(token)")
+                    }
                 }
             }
         }

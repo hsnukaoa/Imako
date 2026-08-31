@@ -40,27 +40,16 @@ struct OwnersItemView: View {
                     }
                 }
                 
-                LazyVStack{
-                    ForEach(chats) { chat in
-                        NavigationLink(destination: ChatView(chat: chat)){
-                            HStack {
-                                Color.blue
-                                    .frame(width: 70, height: 70)
-                                    .clipShape(.circle)
-                                    .padding(.trailing, 0)
-                                VStack{
-                                    Text(chat.item.name)
-                                        .font(.headline)
-                                        .lineLimit(1)
-                                        .padding()
-                                    Spacer()
-                                }
-                                Spacer()
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
+                Spacer()
+                
+                HStack{
+                    Text("所有証明: これはあなたの持ち物です")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .padding()
                 }
+                .background(Color.green.opacity(0.8))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding()
                 
                 Spacer()

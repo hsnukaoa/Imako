@@ -8,8 +8,6 @@
 import SwiftUI
 import FirebaseAuth
 
-//TODO: このページのどこかにライセンスページに続くリンクを作成する
-
 struct UserView: View {
     @StateObject var vm = AuthViewModel()
     let user = Auth.auth().currentUser

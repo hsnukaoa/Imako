@@ -14,6 +14,12 @@ struct AppUser: Codable, Identifiable {
     var uid: String?
     var chatIDs: [String]?
     
+    enum CodingKeys: String, CodingKey {
+        case id
+        case uid
+        case chatIDs = "chats"
+    }
+    
     init(uid: String){
         self.uid = uid
         self.chatIDs = []
@@ -28,6 +34,9 @@ struct Chats : Codable, Identifiable {
     var item: Item
     var visibleTo: [String]
     var blockedBy: [String]
+    var unreadCounts: [String: Int]?
+    var mutedBy: [String]?
+    var createdAt: Date?
     
     init(sentBy: String, sentTo: String, item: Item){
         self.sentBy = sentBy

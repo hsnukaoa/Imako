@@ -76,8 +76,8 @@ struct ChatView: View {
             }
             
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    // 追加処理
+                Button{
+                    //ミュートボタン
                 }label: {
                     Image(systemName: "speaker.wave.2")
                 }
@@ -334,15 +334,6 @@ struct MessageList: View {
                             .foregroundStyle(.white)
                             .background(Color.blue)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .contextMenu{
-                                Button{
-                                    Task {
-                                        await viewModel.unsendMessage(message: message, chat: chat)
-                                    }
-                                }label: {
-                                    Text("送信取り消し")
-                                }
-                            }
                     }else if isImage{
                         if let url = URL(string: message.content!) {
                             AsyncImage(url: url) { phase in
@@ -359,15 +350,6 @@ struct MessageList: View {
                             .frame(height: 200)
                             .onTapGesture {
                                 onImageTapped?(url)
-                            }
-                            .contextMenu{
-                                Button{
-                                    Task {
-                                        await viewModel.unsendMessage(message: message, chat: chat)
-                                    }
-                                }label: {
-                                    Text("送信取り消し")
-                                }
                             }
                         }
                     }else if isDelete{

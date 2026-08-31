@@ -9,12 +9,14 @@ import Foundation
 import Combine
 import FirebaseFirestore
 import FirebaseAuth
+import UserNotifications
 
 @MainActor
 class ChatListViewModel: ObservableObject {
     @Published var chats: [Chats] = []
     @Published var findItemChats: [Chats] = []
     @Published var lostItemChats: [Chats] = []
+    @Published var totalUnreadCount: Int = 0
     
     private let db = Firestore.firestore()
     

@@ -86,7 +86,7 @@ class DatabaseService {
     
     func registerUser(user: AppUser, completion: @escaping (String?) -> Void) {
         do {
-            try db.collection("users").document(user.uid!).setData(from: user)
+            try db.collection("users").document(user.uid!).setData(from: user, merge: true)
             completion(user.uid)
         } catch {
             print("Firebaseユーザー登録エラー: \(error)")
