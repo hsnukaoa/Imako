@@ -19,11 +19,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         // プッシュ通知の許可リクエスト
         UNUserNotificationCenter.current().delegate = self
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-        UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
-            if let error = error {
-                print("通知許可エラー: \(error.localizedDescription)")
-            }
-        }
+        UNUserNotificationCenter.current().requestAuthorization(options: authOptions) {_,_ in }
         
         application.registerForRemoteNotifications()
         Messaging.messaging().delegate = self
@@ -35,24 +31,17 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         Messaging.messaging().apnsToken = deviceToken
     }
     
-    // フォアグラウンドでも通知を表示 (カッコを修正)
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound, .badge])
+        completionHandler([.badge])
     }
     
     // FCMトークンの取得・更新時にFirestoreへ保存
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let token = fcmToken else { return }
         
-        print("====== これがFCMトークンです ======")
-        print(token)
-        print("====================================")
-        
         if let uid = Auth.auth().currentUser?.uid {
             let db = Firestore.firestore()
             db.collection("users").document(uid).setData(["fcmToken": token], merge: true)
-        } else {
-            print("未ログインのためFirestoreへの保存をスキップしました")
         }
     }
 }

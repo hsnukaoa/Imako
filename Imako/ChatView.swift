@@ -499,7 +499,6 @@ struct ImageDetailView: View {
                     UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
                 }
             } catch {
-                print("画像のダウンロードに失敗しました: \(error)")
             }
         }
     }

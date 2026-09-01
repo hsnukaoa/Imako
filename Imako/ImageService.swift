@@ -20,15 +20,13 @@ class ImageService {
         let resizedImage = resizeImage(image, maxDimension: 800.0) ?? image
         
         guard let imageData = resizedImage.jpegData(compressionQuality: 0.4) else {
-            print("画像データの変換に失敗しました")
             completion(nil)
             return
         }
         
         cloudinary.createUploader().upload(data: imageData, uploadPreset: uploadPreset, progress: { progress in
         }) { result, error in
-            if let error = error {
-                print("Cloudinaryアップロードエラー: \(error)")
+            if error != nil {
                 completion(nil)
                 return
             }

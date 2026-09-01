@@ -60,13 +60,9 @@ struct QRCodeScanner: UIViewControllerRepresentable {
                                 let fetchedItem = try document.data(as: Item.self)
                                 self.parent.onResult(fetchedItem)
                             } catch {
-                                print("デコードエラー: \(error)")
                             }
-                        } else {
-                            print("ドキュメントが存在しません。検索したID: \(payloadStringValue)")
                         }
                     } catch {
-                        print("データの取得に失敗しました: \(error.localizedDescription)")
                     }
                 }
             }

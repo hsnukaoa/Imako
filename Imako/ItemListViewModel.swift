@@ -19,10 +19,6 @@ class ItemListViewModel: ObservableObject{
         db.collection("items")
             .whereField("ownerID", isEqualTo: uid)
             .addSnapshotListener{ snapshot, error in
-                if let error = error {
-                    print("Error getting documents: \(error)")
-                }
-                
                 guard let documents = snapshot?.documents else { return }
                 
                 self.items = documents.compactMap{ doc in

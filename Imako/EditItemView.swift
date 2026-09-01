@@ -18,10 +18,7 @@ enum ItemField: String {
 struct EditItemView: View {
     let item: Item
     @Environment(\.dismiss) var dismiss
-    
-    // ViewModelを編集用のものに変更
     @StateObject private var viewModel = ItemEditViewModel()
-    
     @State private var itemName: String
     @State private var canCall: Bool
     @State private var showPicker: Bool = false
@@ -83,9 +80,7 @@ struct EditItemView: View {
                         }
                         
                         let changes = getChangedFields()
-                        print("変更された項目: \(changes.map { $0.rawValue }.joined(separator: ", "))")
                         
-                        // 変更された値だけをオプショナルで抽出
                         let updateName = changes.contains(.name) ? itemName : nil
                         let updateCanCall = changes.contains(.canCall) ? canCall : nil
                         
@@ -100,7 +95,6 @@ struct EditItemView: View {
                             }
                         }
                         
-                        // ItemEditViewModelのeditItemを呼び出し（変更がない項目にはnilが渡される）
                         viewModel.editItem(
                             itemID: itemID,
                             name: updateName,
@@ -226,9 +220,8 @@ struct EditItemView: View {
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 self.imageData = data
-                self.initialImageData = data // 初期画像データとして保存
+                self.initialImageData = data
             } catch {
-                print("画像の取得に失敗しました: \(error.localizedDescription)")
             }
         }
     }

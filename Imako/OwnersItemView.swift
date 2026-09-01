@@ -136,8 +136,7 @@ struct OwnersItemView: View {
         let db = Firestore.firestore()
         
         itemListener = db.collection("items").document(itemID).addSnapshotListener { snapshot, error in
-            if let error = error {
-                print("アイテム情報の監視エラー: \(error)")
+            if error != nil {
                 return
             }
             
@@ -149,7 +148,6 @@ struct OwnersItemView: View {
                     self.item = updatedItem
                 }
             } catch {
-                print("アイテムデータのデコードエラー: \(error)")
             }
         }
     }

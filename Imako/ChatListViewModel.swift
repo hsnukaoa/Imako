@@ -32,8 +32,7 @@ class ChatListViewModel: ObservableObject {
         userListener = docRef.addSnapshotListener { [weak self] documentSnapshot, error in
             guard let self = self else { return }
             
-            if let error = error {
-                print("ユーザーデータの監視に失敗しました: \(error.localizedDescription)")
+            if error != nil {
                 return
             }
             
@@ -58,8 +57,7 @@ class ChatListViewModel: ObservableObject {
                 let listener = db.collection("chats").document(chatID).addSnapshotListener { [weak self] documentSnapshot, error in
                     guard let self = self else { return }
                     
-                    if let error = error {
-                        print("チャット(\(chatID))の監視エラー: \(error.localizedDescription)")
+                    if error != nil {
                         return
                     }
                     
@@ -70,7 +68,6 @@ class ChatListViewModel: ObservableObject {
                         self.currentChatsMap[chatID] = chat
                         self.updatePublishedProperties(currentUserID: currentUserID)
                     } catch {
-                        print("チャットのデコードに失敗しました: \(error.localizedDescription)")
                     }
                 }
                 chatListeners[chatID] = listener
@@ -96,8 +93,7 @@ class ChatListViewModel: ObservableObject {
         self.totalUnreadCount = totalUnread
         
         UNUserNotificationCenter.current().setBadgeCount(totalUnread) { error in
-            if let error = error {
-                print("バッジの更新に失敗しました: \(error.localizedDescription)")
+            if error != nil {
             }
         }
     }
@@ -118,7 +114,6 @@ class ChatListViewModel: ObservableObject {
             let chatDoc = try await db.collection("chats").document(chatID).getDocument()
             return try? chatDoc.data(as: Chats.self)
         } catch {
-            print("チャットの取得に失敗しました: \(error.localizedDescription)")
             return nil
         }
     }

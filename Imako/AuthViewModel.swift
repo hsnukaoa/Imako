@@ -49,7 +49,6 @@ class AuthViewModel: ObservableObject {
                         if let token = token, let uid = Auth.auth().currentUser?.uid {
                             let db = Firestore.firestore()
                             db.collection("users").document(uid).setData(["fcmToken": token], merge: true)
-                            print("新規登録完了後にFCMトークンを保存しました: \(token)")
                         }
                     }
                 }
@@ -65,14 +64,12 @@ class AuthViewModel: ObservableObject {
                     return
                 }
                 Messaging.messaging().token { token, error in
-                    if let error = error {
-                        print("FCMトークン手動取得エラー: \(error.localizedDescription)")
+                    if error != nil {
                         return
                     }
                     if let token = token, let uid = Auth.auth().currentUser?.uid {
                         let db = Firestore.firestore()
                         db.collection("users").document(uid).setData(["fcmToken": token], merge: true)
-                        print("ログイン後にFCMトークンを保存しました: \(token)")
                     }
                 }
             }
@@ -91,28 +88,11 @@ class AuthViewModel: ObservableObject {
         let functions = Functions.functions(region: "asia-northeast1")
         
         do {
-            print("退会処理を開始します...")
-            let result = try await functions.httpsCallable("deleteAccount").call()
-            
-            if let data = result.data as? [String: Any],
-               let message = data["message"] as? String {
-                print("サーバー処理成功: \(message)")
-            }
+            _ = try await functions.httpsCallable("deleteAccount").call()
             
             try Auth.auth().signOut()
-            print("アプリのサインアウトが完了しました。")
             
         } catch {
-            print("退会処理に失敗しました: \(error.localizedDescription)")
-            
-            if let error = error as NSError? {
-                if error.domain == FunctionsErrorDomain {
-                    let code = FunctionsErrorCode(rawValue: error.code)
-                    let details = error.userInfo[FunctionsErrorDetailsKey]
-                    print("Functionsエラーコード: \(String(describing: code))")
-                    print("エラー詳細: \(String(describing: details))")
-                }
-            }
         }
     }
 }

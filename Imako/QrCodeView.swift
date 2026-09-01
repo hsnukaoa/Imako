@@ -56,7 +56,6 @@ struct QrCodeView: View {
                     Label("写真に保存", systemImage: "photo.badge.arrow.down")
                 }
                 
-                // 用紙サイズごとにPDF共有メニューを作成
                 Menu {
                     ForEach(PaperSize.allCases) { paper in
                         if let pdfURL = generatePDF(from: image, paperSize: paper) {
@@ -92,7 +91,6 @@ struct QrCodeView: View {
     
     private func generatePDF(from image: UIImage, paperSize: PaperSize) -> URL? {
         let format = UIGraphicsPDFRendererFormat()
-        // 指定された用紙のサイズでキャンバスを作成
         let bounds = CGRect(origin: .zero, size: paperSize.sizeInPoints)
         let renderer = UIGraphicsPDFRenderer(bounds: bounds, format: format)
         
@@ -103,17 +101,15 @@ struct QrCodeView: View {
                 context.beginPage()
                 
                 // 1mm = 2.83465pt
-                let qrSizeInPoints: CGFloat = 20.0 * 2.83465 // 20mm (2cm)
-                let marginInPoints: CGFloat = 15.0 * 2.83465 // コンビニプリンタの余白を考慮して15mmあける
+                let qrSizeInPoints: CGFloat = 20.0 * 2.83465
+                let marginInPoints: CGFloat = 15.0 * 2.83465
                 
-                // 左上に2cm×2cmで描画
                 let drawRect = CGRect(x: marginInPoints, y: marginInPoints, width: qrSizeInPoints, height: qrSizeInPoints)
                 
                 image.draw(in: drawRect)
             }
             return tempURL
         } catch {
-            print("PDFの生成に失敗しました: \(error)")
             return nil
         }
     }

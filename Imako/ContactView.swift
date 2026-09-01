@@ -60,7 +60,6 @@ struct ContactView: View {
                                                     do {
                                                         try await chatDeletevm.deleteChat(chatId: chatId)
                                                     } catch {
-                                                        print("チャットの削除に失敗しました: \(error)")
                                                     }
                                                 }
                                             }

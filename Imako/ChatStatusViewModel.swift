@@ -62,7 +62,6 @@ class ChatStatusViewModel: ObservableObject {
                 ])
             }
         } catch {
-            print("ミュート設定の変更に失敗しました: \(error.localizedDescription)")
         }
     }
     
@@ -91,8 +90,6 @@ class ChatStatusViewModel: ObservableObject {
         // メールアプリを開く
         if UIApplication.shared.canOpenURL(url) {
             await UIApplication.shared.open(url)
-        } else {
-            print("メールアプリが設定されていません")
         }
     }
     

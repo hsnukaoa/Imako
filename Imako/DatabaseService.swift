@@ -20,7 +20,6 @@ class DatabaseService {
             let ref = try db.collection("items").addDocument(from: item)
             completion(ref.documentID)
         } catch {
-            print("FirebaseFirestore保存エラー: \(error)")
             completion(nil)
         }
     }
@@ -28,8 +27,7 @@ class DatabaseService {
     // 指定したアイテムの情報を更新する関数
     func updateItem(itemID: String, updatedData: [String: Any], completion: @escaping (Bool) -> Void) {
         db.collection("items").document(itemID).updateData(updatedData) { error in
-            if let error = error {
-                print("Firebaseアイテム更新エラー: \(error)")
+            if error != nil {
                 completion(false)
             } else {
                 completion(true)
@@ -40,38 +38,22 @@ class DatabaseService {
     func updateCanCall(itemID: String, canCall: Bool) {
         db.collection("items").document(itemID).updateData([
             "canCall": canCall
-        ]) { error in
-            if let error = error {
-                print("Firebase更新エラー: \(error)")
-            }
-        }
+        ])
     }
     
     func updateItemChatsArray(itemID: String, chatID: String) {
         db.collection("items").document(itemID).updateData([
             "chats": FieldValue.arrayUnion([chatID])
-        ]) { error in
-            if let error = error {
-                print("Firebase更新エラー: \(error)")
-            }
-        }
+        ])
     }
     
     func updateUserChatsArray(finderID: String, dropperID: String, chatID: String){
         db.collection("users").document(finderID).updateData([
             "chats": FieldValue.arrayUnion([chatID])
-        ]) { error in
-            if let error = error {
-                print("Firebase更新エラー: \(error)")
-            }
-        }
+        ])
         db.collection("users").document(dropperID).updateData([
             "chats": FieldValue.arrayUnion([chatID])
-        ]) { error in
-            if let error = error {
-                print("Firebase更新エラー: \(error)")
-            }
-        }
+        ])
     }
     
     func createChat(chat: Chats, completion: @escaping (String?) -> Void) {
@@ -79,7 +61,6 @@ class DatabaseService {
             let ref = try db.collection("chats").addDocument(from: chat)
             completion(ref.documentID)
         } catch {
-            print("Firebaseチャット作成エラー: \(error)")
             completion(nil)
         }
     }
@@ -89,7 +70,6 @@ class DatabaseService {
             try db.collection("users").document(user.uid!).setData(from: user, merge: true)
             completion(user.uid)
         } catch {
-            print("Firebaseユーザー登録エラー: \(error)")
             completion(nil)
         }
     }
@@ -99,7 +79,6 @@ class DatabaseService {
             let ref = try db.collection("chats").document(chatID).collection("messages").addDocument(from: message)
             completion(ref.documentID)
         } catch {
-            print("Firebaseメッセージ送信エラー: \(error)")
             completion(nil)
         }
     }
@@ -124,8 +103,7 @@ class DatabaseService {
         
         // バッチ処理の実行
         batch.commit { error in
-            if let error = error {
-                print("Firebaseブロック処理エラー: \(error)")
+            if error != nil {
                 completion(false)
             } else {
                 completion(true)
@@ -156,8 +134,7 @@ class DatabaseService {
         
         // バッチ処理の実行
         batch.commit { error in
-            if let error = error {
-                print("Firebaseブロック解除処理エラー: \(error)")
+            if error != nil {
                 completion(false)
             } else {
                 completion(true)
@@ -177,7 +154,6 @@ class ItemRegistrationViewModel: ObservableObject {
     func registerNewItem(name: String, image: UIImage, canCall: Bool, lostNumber: Int?, completion: @escaping (Bool) -> Void) {
         
         guard let uid = currentUserID else {
-            print("エラー: ログインしていません")
             completion(false)
             return
         }
@@ -188,7 +164,6 @@ class ItemRegistrationViewModel: ObservableObject {
             guard let self = self else { return }
             
             guard let result = result else {
-                print("画像アップロード失敗")
                 DispatchQueue.main.async {
                     self.isSaving = false
                     completion(false)
@@ -229,12 +204,10 @@ class ChatCreateViewModel: ObservableObject {
     
     func searchSameChat(sentBy: String, sentTo: String, item: Item) async -> (exists: Bool, chat: Chats?) {
         guard currentUserID != nil else {
-            print("エラー: ログインしていません")
             return (false, nil)
         }
         
         guard let itemID = item.id else {
-            print("エラー: item.idが存在しません")
             return (false, nil)
         }
         
@@ -252,21 +225,18 @@ class ChatCreateViewModel: ObservableObject {
                 if let chat = try? document.data(as: Chats.self) {
                     return (true, chat)
                 } else {
-                    print("エラー: Chats型へのデコードに失敗しました")
                     return (false, nil)
                 }
             } else {
                 return (false, nil)
             }
         } catch {
-            print("エラー: 既存チャットの検索に失敗しました: \(error.localizedDescription)")
             return (false, nil)
         }
     }
     
     func createChat(sentBy: String, sentTo: String, item: Item, completion: @escaping (Bool, String?) -> Void) {
         guard currentUserID != nil else {
-            print("エラー: ログインしていません")
             completion(false, nil)
             return
         }
@@ -334,7 +304,6 @@ class MessageViewModel: ObservableObject {
     
     func sendMessage(content: String, chatID: String,contentType: String,imagePublicId: String?, completion: @escaping (Bool) -> Void) {
         guard let uid = currentUserID else {
-            print("エラー: ログインしていません")
             completion(false)
             return
         }
@@ -359,17 +328,13 @@ class MessageViewModel: ObservableObject {
     
     func unsendMessage(message: Message, chat: Chats) async {
         let db = Firestore.firestore()
-        lazy var functions = Functions.functions(region: "asia-northeast1")
+        let functions = Functions.functions(region: "asia-northeast1")
         
         if message.contentType == "image", let publicId = message.imagePublicId {
             do {
-                let result = try await functions.httpsCallable("deleteCloudinaryImage").call(["publicId": publicId])
-                print("Cloudinary画像の削除成功: \(result.data)")
+                _ = try await functions.httpsCallable("deleteCloudinaryImage").call(["publicId": publicId])
             } catch {
-                print("Cloudinary画像の削除失敗: \(error)")
             }
-        } else if message.contentType == "image" {
-            print("imagePublicIdがnilのため、Cloudinary画像の削除をスキップします")
         }
         
         guard let messageId = message.id else { return }
@@ -382,9 +347,7 @@ class MessageViewModel: ObservableObject {
                 "content": FieldValue.delete(),
                 "imagePublicId": FieldValue.delete()
             ])
-            print("メッセージの送信取り消し（Firestore更新）完了")
         } catch {
-            print("Firestoreの更新失敗: \(error)")
         }
     }
 }
@@ -396,7 +359,6 @@ class ItemDeleteViewModel: ObservableObject {
         do {
             try await db.collection("items").document(documentID).delete()
         } catch {
-            print("ドキュメントの削除に失敗しました: \(error)")
         }
     }
 }
@@ -439,7 +401,6 @@ class ItemEditViewModel: ObservableObject {
         if let imageToUpload = newImage {
             ImageService.uploadToCloudinary(image: imageToUpload) { [weak self] result in
                 guard let self = self, let result = result else {
-                    print("画像アップロード失敗")
                     DispatchQueue.main.async {
                         self?.isUpdating = false
                         completion(false)
@@ -456,7 +417,6 @@ class ItemEditViewModel: ObservableObject {
         }
         else {
             guard !updatedData.isEmpty else {
-                print("更新するデータがありません")
                 DispatchQueue.main.async {
                     self.isUpdating = false
                     completion(true)
