@@ -17,6 +17,7 @@ struct SelectedImageURL: Identifiable {
 struct ChatView: View {
     @StateObject private var actionVM = ChatActionViewModel()
     @State private var showingBlockAlert = false
+    @State private var showingBlockAndReportAlert = false
     @State var chat: Chats
     @State var text: String = ""
     @FocusState private var isFocused: Bool
@@ -129,15 +130,7 @@ struct ChatView: View {
             
             ToolbarItem(placement: .secondaryAction) {
                 Button(role: .destructive) {
-                    if isSender{
-                        Task {
-                            await statusVM.blockAndReport(targetUserID: chat.sentTo, currentUserID: chat.sentBy, chatID: chat.id ?? "")
-                        }
-                    }else{
-                        Task {
-                            await statusVM.blockAndReport(targetUserID: chat.sentBy, currentUserID: chat.sentTo, chatID: chat.id ?? "")
-                        }
-                    }
+                    showingBlockAndReportAlert = true
                 }label: {
                     HStack{
                         Image(systemName: "exclamationmark.bubble")
@@ -158,6 +151,30 @@ struct ChatView: View {
             Text("このユーザーからのメッセージを受け取れなくなります。")
         }
         .contentShape(Rectangle())
+        .alert("ブロックして報告しますか？", isPresented: $showingBlockAndReportAlert){
+            Button("キャンセル", role: .cancel){}
+            Button("実行する", role: .destructive){
+                if isSender{
+                    actionVM.blockUser(chat: chat) { success in
+                        if success {
+                            Task {
+                                await statusVM.blockAndReport(targetUserID: chat.sentTo, currentUserID: chat.sentBy, chatID: chat.id ?? "")
+                            }
+                        }
+                    }
+                }else{
+                    actionVM.blockUser(chat: chat) { success in
+                        if success {
+                            Task {
+                                await statusVM.blockAndReport(targetUserID: chat.sentBy, currentUserID: chat.sentTo, chatID: chat.id ?? "")
+                            }
+                        }
+                    }
+                }
+            }
+        } message: {
+            Text("悪質なユーザーを運営に報告し、このユーザーからのメッセージを受け取らなくなります")
+        }
         .onTapGesture {
             isFocused = false
         }
