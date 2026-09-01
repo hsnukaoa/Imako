@@ -82,15 +82,21 @@ struct ChatView: View {
             
             ToolbarItem(placement: .primaryAction) {
                 Button{
-                    if isSender{
-                        let isMuted = chat.mutedBy?.contains(chat.sentTo) ?? false
-                        Task { await statusVM.toggleMute(chatID: chat.id ?? "", currentUserID: chat.sentTo, isCurrentlyMuted: isMuted)}
-                    }else{
-                        let isMuted = chat.mutedBy?.contains(chat.sentBy) ?? false
-                        Task { await statusVM.toggleMute(chatID: chat.id ?? "", currentUserID: chat.sentBy, isCurrentlyMuted: isMuted)}
+                    guard let uid = Auth.auth().currentUser?.uid else { return }
+                    
+                    Task {
+                        await statusVM.toggleMute(
+                            chatID: chat.id ?? "",
+                            currentUserID: uid,
+                            isCurrentlyMuted: statusVM.isMuted
+                        )
                     }
                 }label: {
-                    Image(systemName: "speaker.wave.2")
+                    if statusVM.isMuted {
+                        Image(systemName: "speaker.slash")
+                    } else {
+                        Image(systemName: "speaker.wave.2")
+                    }
                 }
             }
             
