@@ -46,6 +46,13 @@ struct ChatView: View {
                 Text("まだメッセージはありません")
                 Spacer()
                 footer
+            }else if statusVM.isBlockedByOther{
+                Spacer()
+                HStack{
+                    Image(systemName: "exclamationmark.triangle")
+                    Text("チャットが存在しません")
+                }
+                Spacer()
             }else {
                 ScrollView {
                     LazyVStack{
@@ -78,8 +85,13 @@ struct ChatView: View {
         .toolbar(.hidden, for: .tabBar)
         .toolbar{
             ToolbarItem(placement: .title) {
-                Text(chat.item.name)
-                    .font(.headline)
+                if statusVM.isBlockedByOther{
+                    Text("不明")
+                        .font(.headline)
+                }else{
+                    Text(chat.item.name)
+                        .font(.headline)
+                }
             }
             
             ToolbarItem(placement: .primaryAction) {
@@ -100,6 +112,7 @@ struct ChatView: View {
                         Image(systemName: "speaker.wave.2")
                     }
                 }
+                .disabled(statusVM.isBlockedByOther)
             }
             
             ToolbarItem(placement: .secondaryAction) {
@@ -116,6 +129,7 @@ struct ChatView: View {
                         }
                         .foregroundColor(.blue)
                     }
+                    .disabled(statusVM.isBlockedByOther)
                 } else {
                     Button {
                         showingBlockAlert = true
@@ -126,6 +140,7 @@ struct ChatView: View {
                         }
                         .foregroundColor(.red)
                     }
+                    .disabled(statusVM.isBlockedByOther)
                 }
             }
             
@@ -139,6 +154,7 @@ struct ChatView: View {
                     }
                 }
                 .disabled(statusVM.isBlock)
+                .disabled(statusVM.isBlockedByOther)
             }
         }
         .alert("ブロックしますか？", isPresented: $showingBlockAlert) {
@@ -197,10 +213,6 @@ struct ChatView: View {
         }
         .onDisappear {
             statusVM.stopListening()
-        }
-        .fullScreenCover(isPresented: $statusVM.isBlockedByOther) {
-            BlockedView()
-                .interactiveDismissDisabled()
         }
     }
     
