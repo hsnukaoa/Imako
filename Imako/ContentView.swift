@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-//TODO: DesignSystemのMITライセンスの記入
 //TODO: ブロック画面の軽微なバグ修正
 //TODO: プライバシーポリシーの作成
 //TODO: 問題解決ボタンの実装
