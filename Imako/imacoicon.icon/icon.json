@@ -20,6 +20,7 @@
       "layers" : [
         {
           "blend-mode" : "normal",
+          "fill" : "none",
           "glass" : true,
           "image-name" : "Group.svg",
           "name" : "Group",
@@ -130,7 +131,7 @@
         {
           "blend-mode" : "lighten",
           "fill" : {
-            "solid" : "display-p3:0.53111,0.96783,0.58402,1.00000"
+            "solid" : "display-p3:0.32356,0.75082,0.25361,1.00000"
           },
           "glass" : true,
           "image-name" : "Rectangle.svg",

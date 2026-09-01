@@ -77,6 +77,44 @@ exports.onChatDeleted = onDocumentDeleted("chats/{chatId}", async (event) => {
   const chatId = event.params.chatId;
   
   const messagesRef = db.collection("chats").doc(chatId).collection("messages");
+
+  try {
+    const imageMessagesSnapshot = await messagesRef.where("contentType", "==", "image").get();
+    const deletePromises = [];
+
+    imageMessagesSnapshot.forEach((doc) => {
+      const msgData = doc.data();
+      
+      let publicId = msgData.imagePublicId;
+
+      if (!publicId && msgData.content) {
+        // CloudinaryのURL形式: https://res.cloudinary.com/<cloud_name>/image/upload/v1234567/<public_id>.jpg
+        const matches = msgData.content.match(/\/upload\/(?:v\d+\/)?([^\.]+)/);
+        if (matches && matches[1]) {
+          publicId = matches[1];
+        }
+      }
+
+      if (publicId) {
+        deletePromises.push(
+          cloudinary.uploader.destroy(publicId).then((result) => {
+            console.log(`Cloudinary画像 (${publicId}) の削除に成功:`, result);
+          }).catch((error) => {
+            console.error(`Cloudinary画像 (${publicId}) の削除に失敗:`, error);
+          })
+        );
+      }
+    });
+
+    if (deletePromises.length > 0) {
+      await Promise.all(deletePromises);
+      console.log(`チャット (${chatId}) 内の画像 ${deletePromises.length} 件をCloudinaryから削除しました`);
+    }
+
+  } catch (error) {
+    console.error(`チャット (${chatId}) の画像メッセージの検索または削除中にエラーが発生しました:`, error);
+  }
+
   await db.recursiveDelete(messagesRef);
 
   const batch = db.batch();
@@ -112,7 +150,6 @@ exports.onChatDeleted = onDocumentDeleted("chats/{chatId}", async (event) => {
     console.error(`チャット (${chatId}) に関連するデータの更新に失敗しました:`, error);
   }
 });
-
 exports.deleteOldImageOnUpdate = onDocumentUpdated("items/{itemId}", async (event) => {
   if (!event.data) return;
 

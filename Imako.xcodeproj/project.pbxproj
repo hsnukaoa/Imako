@@ -302,7 +302,7 @@
 		677BB4252F7C96C800ABC72C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = imacoIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = imacoicon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Imako/Imako.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -344,7 +344,7 @@
 		677BB4262F7C96C800ABC72C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = imacoIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = imacoicon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Imako/Imako.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";

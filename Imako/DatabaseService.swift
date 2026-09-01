@@ -324,7 +324,7 @@ class UserRegistrationViewModel: ObservableObject {
     }
 }
 
-//メッセージを関連の関数
+//メッセージ関連の関数
 class MessageViewModel: ObservableObject {
     private let dbService = DatabaseService()
     
@@ -506,8 +506,6 @@ class ChatActionViewModel: ObservableObject {
             }
         }
     }
-    
-    // ChatActionViewModel.swift 内に追加
     
     func unblockUser(chat: Chats, completion: @escaping (Bool) -> Void) {
         guard let currentUID = currentUserID, let chatID = chat.id else {

@@ -53,7 +53,6 @@ struct ContactView: View {
                                 ChatList(chat: chat)
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button {
-                                            //TODO: チャットを削除するときに、中のメッセージの画像リンクも全て削除するようにする
                                             if let chatId = chat.id {
                                                 viewModel.removeChatLocally(chatID: chatId)
                                                 

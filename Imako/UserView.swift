@@ -49,17 +49,13 @@ struct UserView: View {
                     
                     Spacer()
                     
-                    Button{
-                        vm.signOut()
-                    }label: {
-                        Text("ログアウト")
-                    }
-                    .padding()
-                    .background(Color.red)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .padding()
-                    .buttonStyle(.plain)
+//
+//                    .padding()
+//                    .background(Color.red)
+//                    .foregroundStyle(.white)
+//                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+//                    .padding()
+//                    .buttonStyle(.plain)
                 }
                 .padding()
             } else {
@@ -86,23 +82,32 @@ struct UserView: View {
         .toolbar(.hidden, for: .tabBar)
         .toolbar{
             ToolbarItem(placement: .secondaryAction){
+                Button{
+                    vm.signOut()
+                }label: {
+                    Text("ログアウト")
+                }
+            }
+            
+            ToolbarItem(placement: .secondaryAction){
+                
                 Button(role: .destructive){
                     showAlert = true
                 }label: {
                     Text("アカウントを削除")
                         .foregroundStyle(.red)
                 }
-            }
-        }
-        .alert("アカウントを削除しますか？", isPresented: $showAlert) {
-            Button("削除", role: .destructive) {
-                Task {
-                    await vm.deleteUser()
+                .alert("アカウントを削除しますか？", isPresented: $showAlert) {
+                    Button("削除", role: .destructive) {
+                        Task {
+                            await vm.deleteUser()
+                        }
+                    }
+                    Button("キャンセル", role: .cancel) {}
+                } message: {
+                    Text("この操作は取り消すことができず、アカウントを完全に削除することになります")
                 }
             }
-            Button("キャンセル", role: .cancel) {}
-        } message: {
-            Text("この操作は取り消すことができず、アカウントを完全に削除することになります")
         }
     }
 }
