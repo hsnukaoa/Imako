@@ -213,6 +213,16 @@ struct ChatView: View {
                         .scaledToFit()
                         .frame(height: 160)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(alignment: .topTrailing) {
+                            Button{
+                                self.imageData = nil
+                            }label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.white, .black.opacity(0.6))
+                            }
+                            .padding(8)
+                        }
                         .padding()
                 }
                 Spacer()
@@ -232,7 +242,16 @@ struct ChatView: View {
                 .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
                 .disabled(statusVM.isBlock)
                 
-                if !statusVM.isBlock{
+                if imageData != nil{
+                    HStack{
+                        Spacer()
+                        Text("写真を選択中")
+                            .padding(.leading)
+                            .padding(.trailing)
+                            .frame(minHeight: 40)
+                        Spacer()
+                    }
+                }else if !statusVM.isBlock{
                     TextField("Aa", text: $text, axis: .vertical)
                         .padding(.leading)
                         .padding(.trailing)
@@ -255,11 +274,7 @@ struct ChatView: View {
                 }
                 
                 Button{
-                    if !text.hasnotContent{
-                        viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text", imagePublicId: nil){ success in
-                            text = ""
-                        }
-                    }else if checkImage{
+                    if checkImage{
                         ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { result in
                             imageText = result!.url
                             viewModel.sendMessage(content: imageText, chatID: chat.id!, contentType: "image", imagePublicId: result?.publicId){ success in
@@ -267,6 +282,10 @@ struct ChatView: View {
                             }
                         }
                         imageData = nil
+                    }else if !text.hasnotContent{
+                        viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text", imagePublicId: nil){ success in
+                            text = ""
+                        }
                     }
                 }label: {
                     Image(systemName: "paperplane.fill")
