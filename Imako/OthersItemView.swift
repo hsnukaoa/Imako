@@ -79,7 +79,7 @@ struct OthersItemView: View {
                 
                 
                 HStack{
-                    Text("連絡を取る")
+                    Text("報告する")
                         .font(.title.bold())
                         .padding()
                     
@@ -90,11 +90,14 @@ struct OthersItemView: View {
                 Button{
                     searchAndCreateChat(currentUserID: currentUserID, sentToUserID: sentToUserID)
                 }label: {
-                    Text("チャットを開始する")
-                        .padding()
-                        .background(Color.green)
-                        .foregroundStyle(.white)
-                        .clipShape(.capsule)
+                    HStack{
+                        Image(systemName: "megaphone")
+                        Text("持ち主に報告する")
+                    }
+                    .padding()
+                    .background(Color.green)
+                    .foregroundStyle(.white)
+                    .clipShape(.capsule)
                 }
                 .glassEffect(.regular.interactive())
                 .buttonStyle(.plain)

@@ -90,7 +90,7 @@ struct ContactView: View {
     
     private var headerView: some View {
         HStack {
-            Text("連絡")
+            Text("報告")
                 .font(.largeTitle.bold())
                 .padding()
             
@@ -111,10 +111,11 @@ struct ContactView: View {
     private var emptyStateView: some View {
         VStack {
             Spacer()
-            Image(systemName: "binoculars")
-                .font(.largeTitle.bold())
+            Image(systemName: "tray")
+                .font(.custom("a", size: 60))
                 .foregroundStyle(.tint)
-            Text("会話がありません")
+                .padding()
+            Text("報告中の持ち物なし")
                 .font(.title)
                 .padding(.top, 8)
             Spacer()

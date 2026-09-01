@@ -22,8 +22,8 @@ struct ContentView: View {
                 Text("読み取り")
             }.tag(2)
             ContactView(vm: vm).tabItem{
-                Image(systemName: "bubble.right")
-                Text("連絡")
+                Image(systemName: "megaphone")
+                Text("報告")
             }.tag(3)
                 .badge(chatListVM.totalUnreadCount)
         }

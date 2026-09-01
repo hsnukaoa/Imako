@@ -43,7 +43,7 @@ struct OwnersItemView: View {
                 Spacer()
                 
                 HStack{
-                    Text("所有証明: これはあなたの持ち物です")
+                    Text("これはあなたの持ち物です")
                         .font(.title3)
                         .foregroundStyle(.white)
                         .padding()

@@ -21,9 +21,10 @@ struct ItemView: View {
                     headerView
                     
                     Spacer()
-                    Image(systemName: "square.stack.3d.up.slash")
-                        .font(.largeTitle.bold())
+                    Image(systemName: "shippingbox")
+                        .font(.custom("a", size: 80))
                         .foregroundStyle(.tint)
+                        .padding()
                     Text("持ち物はありません")
                         .font(.title)
                     Spacer()
