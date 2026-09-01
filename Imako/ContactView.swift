@@ -180,29 +180,28 @@ struct ChatList: View {
                             .foregroundStyle(.black)
                             .padding(.top)
                         Spacer()
-                        
-                        if isOwner{
-                            if let count = chat.unreadCounts?[chat.sentTo], count > 0 {
-                                Text("\(count)")
-                                    .font(.caption2).bold()
-                                    .foregroundColor(.white)
-                                    .padding(6)
-                                    .background(Color.red)
-                                    .clipShape(Circle())
-                            }
-                        }else{
-                            if let count = chat.unreadCounts?[chat.sentBy], count > 0 {
-                                Text("\(count)")
-                                    .font(.caption2).bold()
-                                    .foregroundColor(.white)
-                                    .padding(6)
-                                    .background(Color.red)
-                                    .clipShape(Circle())
-                            }
-                        }
                     }
                     Spacer()
                     
+                    if isOwner{
+                        if let count = chat.unreadCounts?[chat.sentTo], count > 0 {
+                            Text("\(count)")
+                                .font(.caption.bold())
+                                .padding(12)
+                                .foregroundColor(.white)
+                                .background(Color.green)
+                                .clipShape(Circle())
+                        }
+                    }else{
+                        if let count = chat.unreadCounts?[chat.sentBy], count > 0 {
+                            Text("\(count)")
+                                .font(.caption.bold())
+                                .padding(12)
+                                .foregroundColor(.white)
+                                .background(Color.green)
+                                .clipShape(Circle())
+                        }
+                    }
                 }
                 .contentShape(Rectangle())
             }

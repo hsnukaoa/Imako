@@ -8,6 +8,7 @@
 import SwiftUI
 import FirebaseAuth
 import DesignSystem
+import FirebaseFirestore
 
 struct SelectedImageURL: Identifiable {
     let id = UUID()
@@ -137,6 +138,7 @@ struct ChatView: View {
                         Text("ブロックして通報")
                     }
                 }
+                .disabled(statusVM.isBlock)
             }
         }
         .alert("ブロックしますか？", isPresented: $showingBlockAlert) {
@@ -182,6 +184,12 @@ struct ChatView: View {
             vm.fetchMessages(chatID: chat.id!)
             if let chatID = chat.id {
                 statusVM.listenToChatStatus(chatID: chatID)
+                
+                if let uid = Auth.auth().currentUser?.uid {
+                    Firestore.firestore().collection("chats").document(chatID).updateData([
+                        "unreadCounts.\(uid)": 0
+                    ])
+                }
             }
         }
         .fullScreenCover(item: $selectedImage) { selected in

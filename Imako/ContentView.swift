@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+//TODO: DesignSystemのMITライセンスの記入
+//TODO: ブロック画面の軽微なバグ修正
+//TODO: プライバシーポリシーの作成
+//TODO: 問題解決ボタンの実装
+
 struct ContentView: View {
     @ObservedObject var vm: AuthViewModel
     @StateObject var chatListVM: ChatListViewModel
@@ -26,6 +31,12 @@ struct ContentView: View {
                 Text("報告")
             }.tag(3)
                 .badge(chatListVM.totalUnreadCount)
+        }
+        .onAppear(){
+            chatListVM.startListeningChats()
+        }
+        .onDisappear(){
+            chatListVM.stopListening()
         }
     }
 }

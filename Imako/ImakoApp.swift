@@ -31,7 +31,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         return true
     }
     
-    // APNsトークンをFCMに連携
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         Messaging.messaging().apnsToken = deviceToken
     }
@@ -45,12 +44,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let token = fcmToken else { return }
         
-        // テスト送信用に最新のトークンを出力
         print("====== これがFCMトークンです ======")
         print(token)
         print("====================================")
         
-        // ログイン済みの場合のみFirestoreに保存
         if let uid = Auth.auth().currentUser?.uid {
             let db = Firestore.firestore()
             db.collection("users").document(uid).setData(["fcmToken": token], merge: true)
