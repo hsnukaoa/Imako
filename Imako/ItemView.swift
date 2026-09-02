@@ -105,6 +105,7 @@ struct ItemCard: View {
                         }
                     }
                     .frame(width: 100, height: 165)
+                    .clipped()
                 }
                 
                 Text(item.name)

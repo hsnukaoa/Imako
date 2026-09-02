@@ -35,12 +35,12 @@ struct ChatView: View {
     @StateObject private var statusVM = ChatStatusViewModel()
     @State private var showCompleteAlert: Bool = false
     @State private var chatDeleteVM = ChatsDeleteViewModel()
-    
+
     private var isSender: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
         return chat.sentTo == uid
     }
-    
+
     var body: some View {
         ScrollViewReader { proxy in
             if vm.messages.isEmpty{
@@ -95,11 +95,11 @@ struct ChatView: View {
                         .font(.headline)
                 }
             }
-            
+
             ToolbarItem(placement: .primaryAction) {
                 Button{
                     guard let uid = Auth.auth().currentUser?.uid else { return }
-                    
+
                     Task {
                         await statusVM.toggleMute(
                             chatID: chat.id ?? "",
@@ -116,7 +116,7 @@ struct ChatView: View {
                 }
                 .disabled(statusVM.isBlockedByOther)
             }
-            
+
             ToolbarItem(placement: .secondaryAction) {
                 if statusVM.isBlock {
                     Button {
@@ -145,7 +145,7 @@ struct ChatView: View {
                     .disabled(statusVM.isBlockedByOther || statusVM.isReportCompletedByMe)
                 }
             }
-            
+
             ToolbarItem(placement: .secondaryAction) {
                 Button(role: .destructive) {
                     showingBlockAndReportAlert = true
@@ -212,7 +212,7 @@ struct ChatView: View {
             vm.fetchMessages(chatID: chat.id!)
             if let chatID = chat.id {
                 statusVM.listenToChatStatus(chatID: chatID)
-                
+
                 if let uid = Auth.auth().currentUser?.uid {
                     Firestore.firestore().collection("chats").document(chatID).updateData([
                         "unreadCounts.\(uid)": 0
@@ -227,7 +227,7 @@ struct ChatView: View {
             statusVM.stopListening()
         }
     }
-    
+
     private var footer: some View{
         VStack(spacing: 0){
             HStack{
@@ -253,7 +253,7 @@ struct ChatView: View {
                 Spacer()
             }
             .background(.ultraThinMaterial)
-            
+
             HStack{
                 Spacer()
                 Button{
@@ -266,7 +266,7 @@ struct ChatView: View {
                 .buttonStyle(.plain)
                 .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
                 .disabled(statusVM.isBlock || statusVM.isBlockedByOther || statusVM.isReportCompletedByOther || statusVM.isReportCompletedByMe)
-                
+
                 if statusVM.isReportCompletedByMe{
                     HStack{
                         Spacer()
@@ -319,7 +319,7 @@ struct ChatView: View {
                     .background(Color.gray.opacity(0.5))
                     .clipShape(RoundedRectangle(cornerRadius: 26))
                 }
-                
+
                 if !checkImage && text.hasnotContent{
                     Button{
                         showCompleteAlert = true
@@ -335,7 +335,7 @@ struct ChatView: View {
                 }else{
                     Button{
                         guard !statusVM.isBlock && !statusVM.isBlockedByOther else { return }
-                        
+
                         if checkImage{
                             ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { result in
                                 imageText = result!.url
@@ -358,7 +358,7 @@ struct ChatView: View {
                     .buttonStyle(.plain)
                     .disabled(statusVM.isBlock || statusVM.isBlockedByOther || (text.hasnotContent && !checkImage))
                 }
-                
+
                 Spacer()
             }
             .background(.white)
@@ -370,24 +370,24 @@ struct MessageList: View {
     let message: Message
     let chat: Chats
     var onImageTapped: ((URL) -> Void)? = nil
-    
+
     private var isSender: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
         return message.senderID == uid
     }
-    
+
     private var isText: Bool {
         message.contentType == "text"
     }
-    
+
     private var isImage: Bool {
         message.contentType == "image"
     }
-    
+
     private var isDelete: Bool {
         message.contentType == "Delete"
     }
-    
+
     var body: some View {
         HStack {
             if isSender {
@@ -442,12 +442,13 @@ struct MessageList: View {
                             }
                         }
                     }else if isDelete{
-                        Text("送信取り消し")
-                            .font(.callout)
-                            .foregroundStyle(.white)
-                            .background(.gray)
-                            .padding()
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        Text("メッセージの送信を取り消しました")
+                            .font(.subheadline)
+                            .foregroundStyle(.gray)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.gray.opacity(0.15))
+                            .clipShape(Capsule())
                     }else{
                         Text("不明なエラー")
                             .font(.callout)
@@ -484,12 +485,13 @@ struct MessageList: View {
                             }
                         }
                     }else if isDelete{
-                        Text("送信取り消し")
-                            .font(.callout)
-                            .foregroundStyle(.white)
-                            .background(.gray)
-                            .padding()
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        Text("メッセージの送信を取り消しました")
+                            .font(.subheadline)
+                            .foregroundStyle(.gray)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.gray.opacity(0.15))
+                            .clipShape(Capsule())
                     }else{
                         Text("不明なエラー")
                             .font(.callout)
@@ -498,7 +500,7 @@ struct MessageList: View {
                             .padding()
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    
+
                     VStack{
                         Spacer()
                         Text(message.createdAt!, style: .time)
@@ -515,11 +517,11 @@ struct MessageList: View {
 struct ImageDetailView: View {
     let imageURL: URL
     @Environment(\.dismiss) var dismiss
-    
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             AsyncImage(url: imageURL) { phase in
                 if let image = phase.image {
                     image
@@ -533,7 +535,7 @@ struct ImageDetailView: View {
                         .tint(.white)
                 }
             }
-            
+
             VStack {
                 HStack {
                     Button(action: {
@@ -547,9 +549,9 @@ struct ImageDetailView: View {
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
-                    
+
                     Spacer()
-                    
+
                     Menu {
                         Button {
                             saveImageToPhotoLibrary()
@@ -571,7 +573,7 @@ struct ImageDetailView: View {
             }
         }
     }
-    
+
     private func saveImageToPhotoLibrary() {
         Task {
             do {
@@ -590,4 +592,3 @@ extension String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
-
