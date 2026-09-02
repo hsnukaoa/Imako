@@ -50,24 +50,18 @@ struct ContactView: View {
                         
                         List {
                             ForEach(selectedChats) { chat in
-                                ChatList(chat: chat)
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                        Button {
-                                            if let chatId = chat.id {
-                                                viewModel.removeChatLocally(chatID: chatId)
-                                                
-                                                Task {
-                                                    do {
-                                                        try await chatDeletevm.deleteChat(chatId: chatId)
-                                                    } catch {
-                                                    }
-                                                }
+                                ChatList(chat: chat) {
+                                    if let chatId = chat.id {
+                                        viewModel.removeChatLocally(chatID: chatId)
+                                        
+                                        Task {
+                                            do {
+                                                try await chatDeletevm.deleteChat(chatId: chatId)
+                                            } catch {
                                             }
-                                        } label: {
-                                            Text("削除")
                                         }
-                                        .tint(.red)
                                     }
+                                }
                             }
                         }
                         .listStyle(.plain)
@@ -124,9 +118,11 @@ struct ContactView: View {
 
 struct ChatList: View {
     let chat: Chats
+    let onDelete: () -> Void
     
     @State private var showDetail = false
     @State private var showChat = false
+    @StateObject private var statusVM = ChatStatusViewModel()
     
     private var isOwner: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
@@ -174,15 +170,23 @@ struct ChatList: View {
             } label: {
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(chat.item.name)
-                            .font(.headline)
-                            .foregroundStyle(.black)
-                            .padding(.top)
+                        HStack{
+                            Text(chat.item.name)
+                                .font(.headline)
+                                .foregroundStyle(.black)
+                                .padding(.top)
+                            if statusVM.isMuted{
+                                Image(systemName: "speaker.slash")
+                                    .font(.headline)
+                                    .foregroundStyle(.gray)
+                                    .padding(.top)
+                            }
+                        }
                         Spacer()
                     }
                     Spacer()
                     
-                    if isOwner{
+                    if isOwner {
                         if let count = chat.unreadCounts?[chat.sentTo], count > 0 {
                             Text("\(count)")
                                 .font(.caption.bold())
@@ -191,7 +195,7 @@ struct ChatList: View {
                                 .background(Color.green)
                                 .clipShape(Circle())
                         }
-                    }else{
+                    } else {
                         if let count = chat.unreadCounts?[chat.sentBy], count > 0 {
                             Text("\(count)")
                                 .font(.caption.bold())
@@ -206,11 +210,52 @@ struct ChatList: View {
             }
             .buttonStyle(.borderless)
         }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button {
+                onDelete()
+            } label: {
+                Text("削除")
+            }
+            .tint(.red)
+            
+            Button {
+                guard let uid = Auth.auth().currentUser?.uid else { return }
+                
+                Task {
+                    await statusVM.toggleMute(
+                        chatID: chat.id ?? "",
+                        currentUserID: uid,
+                        isCurrentlyMuted: statusVM.isMuted
+                    )
+                }
+            } label: {
+                if statusVM.isMuted {
+                    Image(systemName: "speaker.wave.2")
+                } else {
+                    Image(systemName: "speaker.slash")
+                }
+            }
+            .tint(.cyan)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false){
+            Button{
+                
+            }label: {
+                Image(systemName: "checkmark.circle")
+            }
+            .tint(.green)
+        }
         .navigationDestination(isPresented: $showDetail) {
             BranchDetailView(item: fixedItem)
         }
         .navigationDestination(isPresented: $showChat) {
             ChatView(chat: chat)
+        }
+        .onAppear {
+            statusVM.listenToChatStatus(chatID: chat.id ?? "")
+        }
+        .onDisappear {
+            statusVM.stopListening()
         }
     }
 }
