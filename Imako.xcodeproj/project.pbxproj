@@ -314,9 +314,9 @@
 				INFOPLIST_FILE = Imako/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "いまこ";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
-				INFOPLIST_KEY_NSCameraUsageDescription = "持ち物の写真を撮影するために写真ライブラリへアクセスします";
+				INFOPLIST_KEY_NSCameraUsageDescription = QR;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "QRコードを保存するために写真ライブラリへ書き込みます";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真を登録するために写真ライブラリへアクセスします";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真no登録するために写真ライブラリへアクセスします";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -356,9 +356,9 @@
 				INFOPLIST_FILE = Imako/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "いまこ";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
-				INFOPLIST_KEY_NSCameraUsageDescription = "持ち物の写真を撮影するために写真ライブラリへアクセスします";
+				INFOPLIST_KEY_NSCameraUsageDescription = QR;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "QRコードを保存するために写真ライブラリへ書き込みます";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真を登録するために写真ライブラリへアクセスします";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "持ち物の写真no登録するために写真ライブラリへアクセスします";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
