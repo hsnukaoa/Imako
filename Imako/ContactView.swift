@@ -213,7 +213,12 @@ struct ChatList: View {
         }
         .alert("報告が完了しましたか？", isPresented: $showCompleteAlert){
             Button("キャンセル", role: .cancel){}
-            Button("完了", role: .destructive){}
+            Button("完了", role: .destructive){
+                guard let uid = Auth.auth().currentUser?.uid, let chatID = chat.id else { return }
+                Task {
+                    await statusVM.completeReport(chatID: chatID, currentUserID: uid)
+                }
+            }
         } message:{
             Text("対応が完了したらこのボタンを押してください。完了後は相手からのメッセージ受信が停止しますが、あなたのメッセージは引き続き相手に表示されます。")
         }

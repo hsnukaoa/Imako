@@ -35,6 +35,7 @@ struct LoginView: View {
                     TextField("メールアドレスを入力", text: $email)
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
                 }
                 .padding()
                 
