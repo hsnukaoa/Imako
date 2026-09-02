@@ -52,10 +52,10 @@
           "image-name" : "Oval.svg",
           "name" : "Oval",
           "position" : {
-            "scale" : 1,
+            "scale" : 1.18,
             "translation-in-points" : [
-              -205.23437500000006,
-              22.1015625
+              -205.2343750000001,
+              6.967812500000036
             ]
           }
         },

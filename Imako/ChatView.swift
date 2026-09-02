@@ -252,7 +252,7 @@ struct ChatView: View {
                 .padding()
                 .buttonStyle(.plain)
                 .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
-                .disabled(statusVM.isBlock)
+                .disabled(statusVM.isBlock || statusVM.isBlockedByOther)
                 
                 if imageData != nil{
                     HStack{
@@ -286,6 +286,8 @@ struct ChatView: View {
                 }
                 
                 Button{
+                    guard !statusVM.isBlock && !statusVM.isBlockedByOther else { return }
+                    
                     if checkImage{
                         ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { result in
                             imageText = result!.url
@@ -306,7 +308,7 @@ struct ChatView: View {
                 }
                 .padding()
                 .buttonStyle(.plain)
-                .disabled(text.hasnotContent && !checkImage && statusVM.isBlock)
+                .disabled(statusVM.isBlock || statusVM.isBlockedByOther || (text.hasnotContent && !checkImage))
                 
                 Spacer()
             }

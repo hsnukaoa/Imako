@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import FirebaseFirestore
 
 struct OthersItemView: View {
     @State var item: Item
@@ -18,6 +19,9 @@ struct OthersItemView: View {
     @State var newChatID: String = ""
     @State private var isPresentingChat = false
     @State private var loadedChat: Chats? = nil
+    
+    @State private var isBlockedByOwner: Bool = false
+    @State private var isCheckingBlockStatus: Bool = true
     
     private func searchAndCreateChat(currentUserID: String, sentToUserID: String) {
         Task {
@@ -50,9 +54,39 @@ struct OthersItemView: View {
         }
     }
     
+    private func checkBlockStatus(currentUserID: String, sentToUserID: String) async {
+            let db = Firestore.firestore()
+            
+            do {
+                let blockedByOwnerDoc = try await db.collection("users")
+                    .document(sentToUserID)
+                    .collection("blockedUser")
+                    .document(currentUserID)
+                    .getDocument()
+                
+                let blockedByMeDoc = try await db.collection("users")
+                    .document(currentUserID)
+                    .collection("blockedUser")
+                    .document(sentToUserID)
+                    .getDocument()
+                
+                let isBlocked = blockedByOwnerDoc.exists || blockedByMeDoc.exists
+                
+                await MainActor.run {
+                    self.isBlockedByOwner = isBlocked
+                    self.isCheckingBlockStatus = false
+                }
+                
+            } catch {
+                await MainActor.run {
+                    self.isCheckingBlockStatus = false
+                }
+            }
+        }
+    
     var body: some View {
-        var currentUserID: String{
-            Auth.auth().currentUser!.uid
+        var currentUserID: String {
+            Auth.auth().currentUser?.uid ?? ""
         }
         
         let sentToUserID: String = String(item.ownerID)
@@ -87,21 +121,59 @@ struct OthersItemView: View {
                 }
                 .padding()
                 
-                Button{
-                    searchAndCreateChat(currentUserID: currentUserID, sentToUserID: sentToUserID)
-                }label: {
-                    HStack{
-                        Image(systemName: "megaphone")
-                        Text("持ち主に報告する")
+                if isCheckingBlockStatus {
+                    Button{
+                    }label: {
+                        HStack{
+                            ProgressView()
+                                .tint(.white)
+                            Text("確認中...")
+                        }
+                        .padding()
+                        .background(Color.gray)
+                        .foregroundStyle(.white)
+                        .clipShape(.capsule)
                     }
-                    .padding()
-                    .background(Color.green)
-                    .foregroundStyle(.white)
-                    .clipShape(.capsule)
+                    .glassEffect(.regular.interactive())
+                    .buttonStyle(.plain)
+                    .padding(.top)
+                    .disabled(true)
+                    
+                } else if isBlockedByOwner {
+                    Button{
+                    }label: {
+                        HStack{
+                            Image(systemName: "nosign.app")
+                            Text("報告はできません")
+                        }
+                        .padding()
+                        .background(Color.gray)
+                        .foregroundStyle(.white)
+                        .clipShape(.capsule)
+                    }
+                    .glassEffect(.regular.interactive())
+                    .buttonStyle(.plain)
+                    .padding(.top)
+                    .disabled(true)
+                    
+                } else {
+                    Button{
+                        searchAndCreateChat(currentUserID: currentUserID, sentToUserID: sentToUserID)
+                    }label: {
+                        HStack{
+                            Image(systemName: "megaphone")
+                            Text("持ち主に報告する")
+                        }
+                        .padding()
+                        .background(Color.green)
+                        .foregroundStyle(.white)
+                        .clipShape(.capsule)
+                    }
+                    .glassEffect(.regular.interactive())
+                    .buttonStyle(.plain)
+                    .padding(.top)
+                    .disabled(currentUserID == "")
                 }
-                .glassEffect(.regular.interactive())
-                .buttonStyle(.plain)
-                .padding(.top)
                 
             }
         }
@@ -116,6 +188,9 @@ struct OthersItemView: View {
             } else {
                 ProgressView()
             }
+        }
+        .task {
+            await checkBlockStatus(currentUserID: currentUserID, sentToUserID: sentToUserID)
         }
     }
     

@@ -456,7 +456,6 @@ class ChatActionViewModel: ObservableObject {
         
         isProcessing = true
         
-        // ブロックする相手のUIDを特定 (sentByが自分ならsentToが相手、逆も然り)
         let targetUID = (chat.sentBy == currentUID) ? chat.sentTo : chat.sentBy
         
         dbService.blockUser(chatID: chatID, currentUserID: currentUID, targetUserID: targetUID) { [weak self] success in
