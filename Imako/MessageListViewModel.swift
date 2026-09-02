@@ -13,8 +13,11 @@ import Combine
 class MessageListViewModel: ObservableObject{
     @Published var messages: [Message] = []
     private let db = Firestore.firestore()
+    private var listener: ListenerRegistration?
     
     func fetchMessages(chatID: String){
+        stopListening()
+        
         db.collection("chats").document(chatID).collection("messages")
             .order(by: "createdAt", descending: false)
             .addSnapshotListener { querySnapshot, error in
@@ -24,5 +27,10 @@ class MessageListViewModel: ObservableObject{
                     try? doc.data(as: Message.self)
                 }
             }
+    }
+    
+    func stopListening(){
+        listener?.remove()
+        listener = nil
     }
 }

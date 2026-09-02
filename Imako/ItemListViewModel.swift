@@ -13,8 +13,11 @@ import FirebaseAuth
 class ItemListViewModel: ObservableObject{
     @Published var items: [Item] = []
     private let db = Firestore.firestore()
+    private var listener: ListenerRegistration?
     
     func fetchItems(){
+        stopListening()
+        
         guard let uid = Auth.auth().currentUser?.uid else { return }
         db.collection("items")
             .whereField("ownerID", isEqualTo: uid)
@@ -25,5 +28,10 @@ class ItemListViewModel: ObservableObject{
                     try? doc.data(as: Item.self)
                 }
             }
+    }
+    
+    func stopListening() {
+        listener?.remove()
+        listener = nil
     }
 }

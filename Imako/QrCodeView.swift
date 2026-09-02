@@ -33,7 +33,7 @@ struct QrCodeView: View {
     
     init(item: Item) {
         self.item = item
-        self._data = State(initialValue: String(item.id!))
+        self._data = State(initialValue: String(item.id ?? ""))
     }
     
     init(data: String) {

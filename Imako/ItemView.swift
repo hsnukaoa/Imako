@@ -60,6 +60,9 @@ struct ItemView: View {
         .onAppear {
             viewModel.fetchItems()
         }
+        .onDisappear{
+            viewModel.stopListening()
+        }
     }
     
     private var headerView: some View {

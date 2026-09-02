@@ -225,6 +225,7 @@ struct ChatView: View {
         }
         .onDisappear {
             statusVM.stopListening()
+            vm.stopListening()
         }
     }
 
