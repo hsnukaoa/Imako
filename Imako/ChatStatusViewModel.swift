@@ -5,7 +5,6 @@
 //  Created by 宇田川航太 on 2026/08/30.
 //
 
-
 import SwiftUI
 import Firebase
 import FirebaseAuth
@@ -16,6 +15,9 @@ class ChatStatusViewModel: ObservableObject {
     @Published var isBlock: Bool = false
     @Published var isBlockedByOther: Bool = false
     @Published var isMuted: Bool = false
+    @Published var isReportCompletedByOther: Bool = false
+    @Published var isReportCompletedByBoth: Bool = false
+    @Published var isReportCompletedByMe: Bool = false
     
     private var listener: ListenerRegistration?
     private let db = Firestore.firestore()
@@ -32,20 +34,44 @@ class ChatStatusViewModel: ObservableObject {
         listener = db.collection("chats").document(chatID)
             .addSnapshotListener { [weak self] documentSnapshot, error in
                 guard let self = self,
-                      let document = documentSnapshot,
-                      document.exists,
-                      let data = document.data() else { return }
+                      let document = documentSnapshot else { return }
+                
+                guard document.exists, let data = document.data() else {
+                    return
+                }
                 
                 let visibleTo = data["visibleTo"] as? [String] ?? []
                 let blockedBy = data["blockedBy"] as? [String] ?? []
                 let mutedBy = data["mutedBy"] as? [String] ?? []
                 
+                let completedBy = data["completedBy"] as? [String] ?? []
+                
+                let isCompletedByMe = completedBy.contains(currentUID)
+                let isCompletedByOtherUser = completedBy.contains(where: { $0 != currentUID })
+                let isBothCompleted = isCompletedByMe && isCompletedByOtherUser
+                
                 DispatchQueue.main.async {
                     self.isBlock = blockedBy.contains(currentUID)
-                    self.isBlockedByOther = !visibleTo.contains(currentUID)
+                    self.isBlockedByOther = !visibleTo.contains(currentUID) && !isCompletedByMe
                     self.isMuted = mutedBy.contains(currentUID)
+                    self.isReportCompletedByMe = isCompletedByMe
+                    self.isReportCompletedByOther = isCompletedByOtherUser
+                    self.isReportCompletedByBoth = isBothCompleted
+                }
+                
+                if isBothCompleted {
+                    Task {
+                        await self.deleteChat(chatID: chatID)
+                    }
                 }
             }
+    }
+    
+    private func deleteChat(chatID: String) async {
+        do {
+            try await db.collection("chats").document(chatID).delete()
+        } catch {
+        }
     }
     
     //ミュート機能
@@ -90,6 +116,17 @@ class ChatStatusViewModel: ObservableObject {
         // メールアプリを開く
         if UIApplication.shared.canOpenURL(url) {
             await UIApplication.shared.open(url)
+        }
+    }
+    
+    func completeReport(chatID: String, currentUserID: String) async {
+        let chatRef = db.collection("chats").document(chatID)
+        do {
+            try await chatRef.updateData([
+                "completedBy": FieldValue.arrayUnion([currentUserID]),
+                "visibleTo": FieldValue.arrayRemove([currentUserID])
+            ])
+        } catch {
         }
     }
     

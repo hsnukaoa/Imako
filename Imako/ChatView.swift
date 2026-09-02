@@ -34,6 +34,7 @@ struct ChatView: View {
     @State private var selectedImage: SelectedImageURL?
     @StateObject private var statusVM = ChatStatusViewModel()
     @State private var showCompleteAlert: Bool = false
+    @State private var chatDeleteVM = ChatsDeleteViewModel()
     
     private var isSender: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
@@ -141,7 +142,7 @@ struct ChatView: View {
                         }
                         .foregroundColor(.red)
                     }
-                    .disabled(statusVM.isBlockedByOther)
+                    .disabled(statusVM.isBlockedByOther || statusVM.isReportCompletedByMe)
                 }
             }
             
@@ -154,8 +155,7 @@ struct ChatView: View {
                         Text("ブロックして通報")
                     }
                 }
-                .disabled(statusVM.isBlock)
-                .disabled(statusVM.isBlockedByOther)
+                .disabled(statusVM.isBlock || statusVM.isBlockedByOther || statusVM.isReportCompletedByMe)
             }
         }
         .alert("ブロックしますか？", isPresented: $showingBlockAlert) {
@@ -196,7 +196,12 @@ struct ChatView: View {
         }
         .alert("報告が完了しましたか？", isPresented: $showCompleteAlert){
             Button("キャンセル", role: .cancel){}
-            Button("完了", role: .destructive){}
+            Button("完了", role: .destructive){
+                guard let uid = Auth.auth().currentUser?.uid, let chatID = chat.id else { return }
+                Task {
+                    await statusVM.completeReport(chatID: chatID, currentUserID: uid)
+                }
+            }
         } message:{
             Text("対応が完了したらこのボタンを押してください。完了後は相手からのメッセージ受信が停止しますが、あなたのメッセージは引き続き相手に表示されます。")
         }
@@ -241,6 +246,7 @@ struct ChatView: View {
                                     .foregroundStyle(.white, .black.opacity(0.6))
                             }
                             .padding(8)
+                            .buttonStyle(.plain)
                         }
                         .padding()
                 }
@@ -259,9 +265,31 @@ struct ChatView: View {
                 .padding()
                 .buttonStyle(.plain)
                 .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
-                .disabled(statusVM.isBlock || statusVM.isBlockedByOther)
+                .disabled(statusVM.isBlock || statusVM.isBlockedByOther || statusVM.isReportCompletedByOther || statusVM.isReportCompletedByMe)
                 
-                if imageData != nil{
+                if statusVM.isReportCompletedByMe{
+                    HStack{
+                        Spacer()
+                        Text("報告は完了しました")
+                            .padding(.horizontal)
+                            .foregroundStyle(.white)
+                        Spacer()
+                    }
+                    .frame(minHeight: 40)
+                    .background(Color.mint.opacity(0.6))
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+                }else if statusVM.isReportCompletedByOther{
+                    HStack{
+                        Spacer()
+                        Text("相手の報告は完了しました")
+                            .padding(.horizontal)
+                            .foregroundStyle(.white)
+                        Spacer()
+                    }
+                    .frame(minHeight: 40)
+                    .background(Color.mint.opacity(0.6))
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+                } else if imageData != nil {
                     HStack{
                         Spacer()
                         Text("写真を選択中")
@@ -270,7 +298,7 @@ struct ChatView: View {
                             .frame(minHeight: 40)
                         Spacer()
                     }
-                }else if !statusVM.isBlock{
+                } else if !statusVM.isBlock{
                     TextField("Aa", text: $text, axis: .vertical)
                         .padding(.leading)
                         .padding(.trailing)
@@ -295,6 +323,7 @@ struct ChatView: View {
                 if !checkImage && text.hasnotContent{
                     Button{
                         showCompleteAlert = true
+                        imageData = nil
                     }label: {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 32))
@@ -302,7 +331,7 @@ struct ChatView: View {
                     }
                     .padding()
                     .buttonStyle(.plain)
-                    .disabled(statusVM.isBlock || statusVM.isBlockedByOther)
+                    .disabled(statusVM.isBlock || statusVM.isBlockedByOther || statusVM.isReportCompletedByMe)
                 }else{
                     Button{
                         guard !statusVM.isBlock && !statusVM.isBlockedByOther else { return }
@@ -336,7 +365,6 @@ struct ChatView: View {
         }
     }
 }
-
 struct MessageList: View {
     @ObservedObject private var viewModel = MessageViewModel()
     let message: Message

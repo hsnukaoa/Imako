@@ -8,7 +8,6 @@
 import SwiftUI
 
 //TODO: プライバシーポリシーの作成
-//TODO: 問題解決ボタンの実装
 
 struct ContentView: View {
     @ObservedObject var vm: AuthViewModel

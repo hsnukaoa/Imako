@@ -37,6 +37,7 @@ struct Chats : Codable, Identifiable {
     var unreadCounts: [String: Int]?
     var mutedBy: [String]?
     var createdAt: Date?
+    var completedBy: [String]?
     
     init(sentBy: String, sentTo: String, item: Item){
         self.sentBy = sentBy
@@ -45,6 +46,7 @@ struct Chats : Codable, Identifiable {
         self.itemID = item.id!
         self.visibleTo = [sentBy, sentTo]
         self.blockedBy = []
+        self.completedBy = []
     }
 }
 
