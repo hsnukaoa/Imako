@@ -12,6 +12,7 @@ struct UserView: View {
     @StateObject var vm = AuthViewModel()
     let user = Auth.auth().currentUser
     @State private var showAlert: Bool = false
+    @Environment(\.openURL) private var openURL
     
     var body: some View {
         NavigationStack {
@@ -93,7 +94,20 @@ struct UserView: View {
                     .padding()
                     
                     Button{
-                        
+                        openURL(URL(string: "https://bouncy-hockey-26d.notion.site/EULA-52e09fa640bd4b38ac4ee3f43488b230?source=copy_link")!)
+                    }label: {
+                        HStack{
+                            Spacer()
+                            Image(systemName: "info.circle")
+                            Text("利用規約")
+                            Spacer()
+                        }
+                        .foregroundStyle(.tint)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button{
+                        openURL(URL(string: "https://bouncy-hockey-26d.notion.site/cfeb82e2b6d84821b9d5bf1912629029?source=copy_link")!)
                     }label: {
                         HStack{
                             Spacer()
@@ -104,8 +118,6 @@ struct UserView: View {
                         .foregroundStyle(.tint)
                     }
                     .buttonStyle(.plain)
-                    
-                    
                 }
                 .padding()
             } else {

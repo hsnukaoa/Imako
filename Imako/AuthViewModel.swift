@@ -37,7 +37,7 @@ class AuthViewModel: ObservableObject {
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    self.errorMessage = error.localizedDescription
+                    self.errorMessage = self.translateAuthError(error)
                     return
                 }
                 
@@ -60,7 +60,7 @@ class AuthViewModel: ObservableObject {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    self.errorMessage = error.localizedDescription
+                    self.errorMessage = self.translateAuthError(error)
                     return
                 }
                 Messaging.messaging().token { token, error in
@@ -80,7 +80,7 @@ class AuthViewModel: ObservableObject {
         do {
             try Auth.auth().signOut()
         } catch {
-            self.errorMessage = error.localizedDescription
+            self.errorMessage = self.translateAuthError(error)
         }
     }
     
@@ -94,5 +94,34 @@ class AuthViewModel: ObservableObject {
             
         } catch {
         }
+    }
+    
+    private func translateAuthError(_ error: Error) -> String {
+        let nsError = error as NSError
+        
+        if let errorCode = AuthErrorCode(rawValue: nsError.code) {
+            switch errorCode {
+            case .invalidEmail:
+                return "メールアドレスの形式が正しくありません。"
+            case .emailAlreadyInUse:
+                return "このメールアドレスは既に登録されています。"
+            case .weakPassword:
+                return "パスワードは6文字以上で入力してください。"
+            case .userNotFound:
+                return "ユーザーが見つかりません。登録したメールアドレスを確認してください。"
+            case .wrongPassword:
+                return "パスワードが間違っています。"
+            case .networkError:
+                return "通信エラーが発生しました。電波の良い所で再度お試しください。"
+            case .tooManyRequests:
+                return "アクセスが集中しているか、試行回数が多すぎます。しばらく経ってから再度お試しください。"
+            case .invalidCredential:
+                return "メールアドレスまたはパスワードが間違っています。"
+            default:
+                break
+            }
+        }
+        
+        return "エラーが発生しました。(\(error.localizedDescription))"
     }
 }

@@ -85,6 +85,9 @@ struct LoginView: View {
                 Spacer()
             }
             .padding()
+            .onAppear{
+                vm.errorMessage = nil
+            }
         }
     }
 }
