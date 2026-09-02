@@ -38,6 +38,7 @@ struct Chats : Codable, Identifiable {
     var mutedBy: [String]?
     var createdAt: Date?
     var completedBy: [String]?
+    var updatedAt: Date?
     
     init(sentBy: String, sentTo: String, item: Item){
         self.sentBy = sentBy

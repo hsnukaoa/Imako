@@ -296,7 +296,7 @@ class MessageViewModel: ObservableObject {
         Auth.auth().currentUser?.uid
     }
     
-    func sendMessage(content: String, chatID: String,contentType: String,imagePublicId: String?, completion: @escaping (Bool) -> Void) {
+    func sendMessage(content: String, chatID: String, contentType: String, imagePublicId: String?, completion: @escaping (Bool) -> Void) {
         guard let uid = currentUserID else {
             completion(false)
             return
@@ -310,10 +310,21 @@ class MessageViewModel: ObservableObject {
         )
         
         dbService.sendMessage(message: message, chatID: chatID) { documentID in
-            DispatchQueue.main.async {
-                if documentID != nil {
-                    completion(true)
-                } else {
+            if documentID != nil {
+                let db = Firestore.firestore()
+                db.collection("chats").document(chatID).updateData([
+                    "updatedAt": FieldValue.serverTimestamp()
+                ]) { error in
+                    DispatchQueue.main.async {
+                        if error != nil {
+                            completion(false)
+                        } else {
+                            completion(true)
+                        }
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
                     completion(false)
                 }
             }

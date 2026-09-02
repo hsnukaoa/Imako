@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-//TODO: プライバシーポリシーの作成
-
 struct ContentView: View {
     @ObservedObject var vm: AuthViewModel
     @StateObject var chatListVM: ChatListViewModel

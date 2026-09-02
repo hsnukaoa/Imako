@@ -80,8 +80,9 @@ class ChatListViewModel: ObservableObject {
     private func updatePublishedProperties(currentUserID: String) {
         let allChats = Array(self.currentChatsMap.values)
         
-        let visibleChats = allChats.filter { $0.visibleTo.contains(currentUserID) }
-        
+        let visibleChats = allChats
+            .filter { $0.visibleTo.contains(currentUserID) }
+            .sorted { ($0.updatedAt ?? $0.createdAt ?? Date.distantPast) > ($1.updatedAt ?? $1.createdAt ?? Date.distantPast) }        
         self.chats = visibleChats
         self.findItemChats = visibleChats.filter { $0.sentBy == currentUserID }
         self.lostItemChats = visibleChats.filter { $0.sentBy != currentUserID }
