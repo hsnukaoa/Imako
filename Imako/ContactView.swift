@@ -123,6 +123,7 @@ struct ChatList: View {
     @State private var showDetail = false
     @State private var showChat = false
     @StateObject private var statusVM = ChatStatusViewModel()
+    @State private var showCompleteAlert = false
     
     private var isOwner: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
@@ -176,7 +177,7 @@ struct ChatList: View {
                                 .foregroundStyle(.black)
                                 .padding(.top)
                             if statusVM.isMuted{
-                                Image(systemName: "speaker.slash")
+                                Image(systemName: "speaker.slash.fill")
                                     .font(.headline)
                                     .foregroundStyle(.gray)
                                     .padding(.top)
@@ -210,6 +211,12 @@ struct ChatList: View {
             }
             .buttonStyle(.borderless)
         }
+        .alert("報告が完了しましたか？", isPresented: $showCompleteAlert){
+            Button("キャンセル", role: .cancel){}
+            Button("完了", role: .destructive){}
+        } message:{
+            Text("対応が完了したらこのボタンを押してください。完了後は相手からのメッセージ受信が停止しますが、あなたのメッセージは引き続き相手に表示されます。")
+        }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button {
                 onDelete()
@@ -239,7 +246,7 @@ struct ChatList: View {
         }
         .swipeActions(edge: .leading, allowsFullSwipe: false){
             Button{
-                
+                showCompleteAlert = true
             }label: {
                 Image(systemName: "checkmark.circle")
             }

@@ -33,6 +33,7 @@ struct ChatView: View {
     @State var imageText: String = ""
     @State private var selectedImage: SelectedImageURL?
     @StateObject private var statusVM = ChatStatusViewModel()
+    @State private var showCompleteAlert: Bool = false
     
     private var isSender: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
@@ -193,6 +194,12 @@ struct ChatView: View {
         } message: {
             Text("悪質なユーザーを運営に報告し、このユーザーからのメッセージを受け取らなくなります")
         }
+        .alert("報告が完了しましたか？", isPresented: $showCompleteAlert){
+            Button("キャンセル", role: .cancel){}
+            Button("完了", role: .destructive){}
+        } message:{
+            Text("対応が完了したらこのボタンを押してください。完了後は相手からのメッセージ受信が停止しますが、あなたのメッセージは引き続き相手に表示されます。")
+        }
         .onTapGesture {
             isFocused = false
         }
@@ -285,30 +292,43 @@ struct ChatView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 26))
                 }
                 
-                Button{
-                    guard !statusVM.isBlock && !statusVM.isBlockedByOther else { return }
-                    
-                    if checkImage{
-                        ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { result in
-                            imageText = result!.url
-                            viewModel.sendMessage(content: imageText, chatID: chat.id!, contentType: "image", imagePublicId: result?.publicId){ success in
-                                imageText = ""
+                if !checkImage && text.hasnotContent{
+                    Button{
+                        showCompleteAlert = true
+                    }label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundStyle(.mint)
+                    }
+                    .padding()
+                    .buttonStyle(.plain)
+                    .disabled(statusVM.isBlock || statusVM.isBlockedByOther)
+                }else{
+                    Button{
+                        guard !statusVM.isBlock && !statusVM.isBlockedByOther else { return }
+                        
+                        if checkImage{
+                            ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { result in
+                                imageText = result!.url
+                                viewModel.sendMessage(content: imageText, chatID: chat.id!, contentType: "image", imagePublicId: result?.publicId){ success in
+                                    imageText = ""
+                                }
+                            }
+                            imageData = nil
+                        }else if !text.hasnotContent{
+                            viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text", imagePublicId: nil){ success in
+                                text = ""
                             }
                         }
-                        imageData = nil
-                    }else if !text.hasnotContent{
-                        viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text", imagePublicId: nil){ success in
-                            text = ""
-                        }
+                    }label: {
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 25))
+                            .foregroundStyle(.green)
                     }
-                }label: {
-                    Image(systemName: "paperplane.fill")
-                        .font(.system(size: 25))
-                        .foregroundStyle(.green)
+                    .padding()
+                    .buttonStyle(.plain)
+                    .disabled(statusVM.isBlock || statusVM.isBlockedByOther || (text.hasnotContent && !checkImage))
                 }
-                .padding()
-                .buttonStyle(.plain)
-                .disabled(statusVM.isBlock || statusVM.isBlockedByOther || (text.hasnotContent && !checkImage))
                 
                 Spacer()
             }

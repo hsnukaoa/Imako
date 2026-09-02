@@ -93,7 +93,6 @@ class ChatStatusViewModel: ObservableObject {
         }
     }
     
-    // 画面が閉じられたら監視を解除（メモリリーク防止）
     func stopListening() {
         listener?.remove()
     }

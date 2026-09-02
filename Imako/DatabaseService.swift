@@ -101,7 +101,6 @@ class DatabaseService {
         
         batch.setData(["blockedAt": FieldValue.serverTimestamp()], forDocument: blockedUserRef)
         
-        // バッチ処理の実行
         batch.commit { error in
             if error != nil {
                 completion(false)
@@ -111,12 +110,8 @@ class DatabaseService {
         }
     }
     
-    // DatabaseService.swift 内に追加
-    
     func unblockUser(chatID: String, currentUserID: String, targetUserID: String, completion: @escaping (Bool) -> Void) {
         let batch = db.batch()
-        
-        // 1. chatsコレクションの更新
         // blockedByから自分を削除し、visibleToに相手を戻す（追加する）
         let chatRef = db.collection("chats").document(chatID)
         batch.updateData([
@@ -124,7 +119,6 @@ class DatabaseService {
             "visibleTo": FieldValue.arrayUnion([targetUserID])
         ], forDocument: chatRef)
         
-        // 2. usersコレクションのサブコレクションから該当ドキュメントを削除
         let blockedUserRef = db.collection("users")
             .document(currentUserID)
             .collection("blockedUser")
@@ -430,7 +424,6 @@ class ItemEditViewModel: ObservableObject {
     
     // Firestoreへの保存処理をまとめたプライベート関数
     private func saveChanges(itemID: String, updatedData: [String: Any], completion: @escaping (Bool) -> Void) {
-        // ※ DatabaseServiceに前述の updateItem 関数が追加されている前提です
         dbService.updateItem(itemID: itemID, updatedData: updatedData) { [weak self] success in
             DispatchQueue.main.async {
                 self?.isUpdating = false
