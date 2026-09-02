@@ -35,12 +35,12 @@ struct ChatView: View {
     @StateObject private var statusVM = ChatStatusViewModel()
     @State private var showCompleteAlert: Bool = false
     @State private var chatDeleteVM = ChatsDeleteViewModel()
-
+    
     private var isSender: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
         return chat.sentTo == uid
     }
-
+    
     var body: some View {
         ScrollViewReader { proxy in
             if vm.messages.isEmpty{
@@ -95,11 +95,11 @@ struct ChatView: View {
                         .font(.headline)
                 }
             }
-
+            
             ToolbarItem(placement: .primaryAction) {
                 Button{
                     guard let uid = Auth.auth().currentUser?.uid else { return }
-
+                    
                     Task {
                         await statusVM.toggleMute(
                             chatID: chat.id ?? "",
@@ -116,7 +116,7 @@ struct ChatView: View {
                 }
                 .disabled(statusVM.isBlockedByOther)
             }
-
+            
             ToolbarItem(placement: .secondaryAction) {
                 if statusVM.isBlock {
                     Button {
@@ -145,7 +145,7 @@ struct ChatView: View {
                     .disabled(statusVM.isBlockedByOther || statusVM.isReportCompletedByMe)
                 }
             }
-
+            
             ToolbarItem(placement: .secondaryAction) {
                 Button(role: .destructive) {
                     showingBlockAndReportAlert = true
@@ -209,10 +209,10 @@ struct ChatView: View {
             isFocused = false
         }
         .onAppear{
-            vm.fetchMessages(chatID: chat.id!)
             if let chatID = chat.id {
+                vm.fetchMessages(chatID: chatID)
                 statusVM.listenToChatStatus(chatID: chatID)
-
+                
                 if let uid = Auth.auth().currentUser?.uid {
                     Firestore.firestore().collection("chats").document(chatID).updateData([
                         "unreadCounts.\(uid)": 0
@@ -228,7 +228,7 @@ struct ChatView: View {
             vm.stopListening()
         }
     }
-
+    
     private var footer: some View{
         VStack(spacing: 0){
             HStack{
@@ -254,7 +254,7 @@ struct ChatView: View {
                 Spacer()
             }
             .background(.ultraThinMaterial)
-
+            
             HStack{
                 Spacer()
                 Button{
@@ -267,7 +267,7 @@ struct ChatView: View {
                 .buttonStyle(.plain)
                 .imagePicker(isPresented: $showPicker, selectedImageData: $imageData)
                 .disabled(statusVM.isBlock || statusVM.isBlockedByOther || statusVM.isReportCompletedByOther || statusVM.isReportCompletedByMe)
-
+                
                 if statusVM.isReportCompletedByMe{
                     HStack{
                         Spacer()
@@ -320,7 +320,7 @@ struct ChatView: View {
                     .background(Color.gray.opacity(0.5))
                     .clipShape(RoundedRectangle(cornerRadius: 26))
                 }
-
+                
                 if !checkImage && text.hasnotContent{
                     Button{
                         showCompleteAlert = true
@@ -336,17 +336,23 @@ struct ChatView: View {
                 }else{
                     Button{
                         guard !statusVM.isBlock && !statusVM.isBlockedByOther else { return }
+                        guard let chatID = chat.id else { return }
 
-                        if checkImage{
-                            ImageService.uploadToCloudinary(image: UIImage(data: imageData!)!) { result in
-                                imageText = result!.url
-                                viewModel.sendMessage(content: imageText, chatID: chat.id!, contentType: "image", imagePublicId: result?.publicId){ success in
-                                    imageText = ""
+                        if checkImage {
+                            if let data = imageData, let uiImage = UIImage(data: data) {
+                                ImageService.uploadToCloudinary(image: uiImage) { result in
+                                    guard let result = result else { return }
+                                    DispatchQueue.main.async {
+                                        imageText = result.url
+                                        viewModel.sendMessage(content: imageText, chatID: chatID, contentType: "image", imagePublicId: result.publicId) { success in
+                                            imageText = ""
+                                        }
+                                        self.imageData = nil
+                                    }
                                 }
                             }
-                            imageData = nil
-                        }else if !text.hasnotContent{
-                            viewModel.sendMessage(content: text, chatID: chat.id!, contentType: "text", imagePublicId: nil){ success in
+                        } else if !text.hasnotContent {
+                            viewModel.sendMessage(content: text, chatID: chatID, contentType: "text", imagePublicId: nil) { success in
                                 text = ""
                             }
                         }
@@ -359,7 +365,7 @@ struct ChatView: View {
                     .buttonStyle(.plain)
                     .disabled(statusVM.isBlock || statusVM.isBlockedByOther || (text.hasnotContent && !checkImage))
                 }
-
+                
                 Spacer()
             }
             .background(.white)
@@ -371,24 +377,24 @@ struct MessageList: View {
     let message: Message
     let chat: Chats
     var onImageTapped: ((URL) -> Void)? = nil
-
+    
     private var isSender: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
         return message.senderID == uid
     }
-
+    
     private var isText: Bool {
         message.contentType == "text"
     }
-
+    
     private var isImage: Bool {
         message.contentType == "image"
     }
-
+    
     private var isDelete: Bool {
         message.contentType == "Delete"
     }
-
+    
     var body: some View {
         HStack {
             if isSender {
@@ -396,12 +402,14 @@ struct MessageList: View {
                     Spacer()
                     VStack{
                         Spacer()
-                        Text(message.createdAt!, style: .time)
-                            .font(.callout)
-                            .foregroundStyle(.gray)
+                        if let createdAt = message.createdAt{
+                            Text(createdAt, style: .time)
+                                .font(.callout)
+                                .foregroundStyle(.gray)
+                        }
                     }
                     if isText{
-                        Text(message.content!)
+                        Text(message.content ?? "メッセージエラー")
                             .padding()
                             .foregroundStyle(.white)
                             .background(Color.green)
@@ -416,7 +424,7 @@ struct MessageList: View {
                                 }
                             }
                     }else if isImage{
-                        if let url = URL(string: message.content!) {
+                        if let content = message.content, let url = URL(string: content) {
                             AsyncImage(url: url) { phase in
                                 if let image = phase.image {
                                     image.resizable()
@@ -432,12 +440,12 @@ struct MessageList: View {
                             .onTapGesture {
                                 onImageTapped?(url)
                             }
-                            .contextMenu{
-                                Button{
+                            .contextMenu {
+                                Button {
                                     Task {
                                         await viewModel.unsendMessage(message: message, chat: chat)
                                     }
-                                }label: {
+                                } label: {
                                     Text("送信取り消し")
                                 }
                             }
@@ -462,13 +470,13 @@ struct MessageList: View {
             }else{
                 HStack{
                     if isText{
-                        Text(message.content!)
+                        Text(message.content ?? "メッセージエラー")
                             .padding()
                             .foregroundStyle(.white)
                             .background(Color.blue)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                     }else if isImage{
-                        if let url = URL(string: message.content!) {
+                        if let content = message.content, let url = URL(string: content) {
                             AsyncImage(url: url) { phase in
                                 if let image = phase.image {
                                     image.resizable()
@@ -501,12 +509,14 @@ struct MessageList: View {
                             .padding()
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-
+                    
                     VStack{
                         Spacer()
-                        Text(message.createdAt!, style: .time)
-                            .font(.callout)
-                            .foregroundStyle(.gray)
+                        if let createdAt = message.createdAt{
+                            Text(createdAt, style: .time)
+                                .font(.callout)
+                                .foregroundStyle(.gray)
+                        }
                     }
                     Spacer()
                 }
@@ -518,11 +528,11 @@ struct MessageList: View {
 struct ImageDetailView: View {
     let imageURL: URL
     @Environment(\.dismiss) var dismiss
-
+    
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-
+            
             AsyncImage(url: imageURL) { phase in
                 if let image = phase.image {
                     image
@@ -536,7 +546,7 @@ struct ImageDetailView: View {
                         .tint(.white)
                 }
             }
-
+            
             VStack {
                 HStack {
                     Button(action: {
@@ -550,9 +560,9 @@ struct ImageDetailView: View {
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
-
+                    
                     Spacer()
-
+                    
                     Menu {
                         Button {
                             saveImageToPhotoLibrary()
@@ -574,7 +584,7 @@ struct ImageDetailView: View {
             }
         }
     }
-
+    
     private func saveImageToPhotoLibrary() {
         Task {
             do {
@@ -593,3 +603,4 @@ extension String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
+

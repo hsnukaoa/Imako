@@ -44,7 +44,7 @@ struct Chats : Codable, Identifiable {
         self.sentBy = sentBy
         self.sentTo = sentTo
         self.item = item
-        self.itemID = item.id!
+        self.itemID = item.id ?? ""
         self.visibleTo = [sentBy, sentTo]
         self.blockedBy = []
         self.completedBy = []

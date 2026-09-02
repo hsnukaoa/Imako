@@ -66,9 +66,14 @@ class DatabaseService {
     }
     
     func registerUser(user: AppUser, completion: @escaping (String?) -> Void) {
+        guard let uid = user.uid else {
+            completion(nil)
+            return
+        }
+
         do {
-            try db.collection("users").document(user.uid!).setData(from: user, merge: true)
-            completion(user.uid)
+            try db.collection("users").document(uid).setData(from: user, merge: true)
+            completion(uid)
         } catch {
             completion(nil)
         }
