@@ -124,6 +124,7 @@ struct ChatList: View {
     @State private var showChat = false
     @StateObject private var statusVM = ChatStatusViewModel()
     @State private var showCompleteAlert = false
+    @State private var showDeleteAlert = false
     
     private var isOwner: Bool {
         guard let uid = Auth.auth().currentUser?.uid else { return false }
@@ -224,7 +225,7 @@ struct ChatList: View {
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button {
-                onDelete()
+                showDeleteAlert = true
             } label: {
                 Text("削除")
             }
@@ -256,6 +257,15 @@ struct ChatList: View {
                 Image(systemName: "checkmark.circle")
             }
             .tint(.green)
+        }
+        .alert("チャットを削除しますか？", isPresented: $showDeleteAlert){
+            Button("キャンセル", role: .cancel){}
+            
+            Button("削除", role: .destructive){
+                onDelete()
+            }
+        }message: {
+            Text("このチャットは相手からも完全に削除されます")
         }
         .navigationDestination(isPresented: $showDetail) {
             BranchDetailView(item: fixedItem)
